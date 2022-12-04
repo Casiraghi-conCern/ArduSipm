@@ -229,7 +229,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
     '''
     start_time = datetime.now()
     stopat = start_time+timedelta(seconds=duration_acq)
-    print(f'Starting: {start_time} -> {stopat})
+    print(f'Starting: {start_time} -> {stopat}')
     # serial connection
     ser = serial.Serial()
     ser.baudrate = 115200
