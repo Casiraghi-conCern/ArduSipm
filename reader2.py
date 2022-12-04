@@ -271,7 +271,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
     print(f"Start running {nLoops} loops of {duration_acq} sec each")
     print()
-    for i in range(1, nLoops+1)
+    for i in range(1, nLoops+1):
         print(f"Run now loop n {i} of {nLoops}")
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
 
