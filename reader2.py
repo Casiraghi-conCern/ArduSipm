@@ -36,57 +36,63 @@ matplotlib.use('TkAgg')
 
 
 def menu_long():
-    print("\n ========================= ")
-    print("     WELCOME TO ArduSiPM   ")
-    print(" ========================= ")
-    print(" type menu() for this menu \n")
-    print(" available functions are:  ")
-    print("   - Info_ASPM():           Retrive basic information from ArduSiPM ")
-    print("   - Acquire_ASPM():        Open connection and start acquisition")
-    print("   - Save_Data():           Save recorded data on a file")
-    print("   - ")
-    print("   - lf.Load_Curti_xlsx():  Load data from xlsx output file")
-    print("   - lf.LoadMerge_xlsx():   Load all files from a folder (xlsx)")
-    print("   - lf.Load_csv():         Load data from CVS output file")
-    print("   - lf.LoadMerge_cvs():    Load all files from a folder (cvs)")
-    print("   - ")
-    print("   - Plot_ADC():            1D plot of ADC spectra")
-    print("   - ")
-    print("   - RunIt():               ")
-    print("   - RunLoop():")
-    print("   - Acquire_ASPM()")
-    print("   - ")
-    print("   - menu_long()")
-    print(" ========================= \n")
+    print('''
+          =========================
+          WELCOME TO ArduSiPM
+          =========================
+          type menu() for this menu \n
+          available functions are:
+          - Info_ASPM():           Retrive basic information from ArduSiPM
+          - Acquire_ASPM():        Open connection and start acquisition
+          - Save_Data():           Save recorded data on a file
+          -
+          - lf.Load_Curti_xlsx():  Load data from xlsx output file
+          - lf.LoadMerge_xlsx():   Load all files from a folder (xlsx)
+          - lf.Load_csv():         Load data from CVS output file
+          - lf.LoadMerge_cvs():    Load all files from a folder (cvs)
+          -
+          - Plot_ADC():            1D plot of ADC spectra
+          -
+          - RunIt():
+          - RunLoop():
+          - Acquire_ASPM()
+          -
+          - menu_long()
+          =========================
+          ''')
 
 
 def menu():
-    print("\n ========================= ")
-    print("     WELCOME TO ArduSiPM   ")
-    print(" ========================= ")
-    print(" type menu() for this menu \n")
-    print(" available functions are:  ")
-    print("   - Info_ASPM()")
-    print("   - lf.Load_csv(filename=, debug=)")
-    print("   - lf.LoadMerge_cvs(directory=, InName=, OutName=, debug=)")
-    print("   - ")
-    print("   - Plot_ADC(dati, binsize=16, hRange=[0,4000])")
-    print("   - ")
-    print("   - RunIt(duration_acq=0, file_par=)               ")
-    print("   - RunLoop(duration_acq, nLoops, file_par)")
-    print("   - ")
-    print("   - menu_long()")
-    print(" ========================= \n")
+    print('''
+        ========================= 
+            WELCOME TO ArduSiPM   
+        ========================= 
+        type menu() for this menu \n
+        available functions are:  
+        - Info_ASPM()
+        - lf.Load_csv(filename=, debug=)
+        - lf.LoadMerge_cvs(directory=, InName=, OutName=, debug=)
+        - 
+        - Plot_ADC(dati, binsize=16, hRange=[0,4000])
+        - 
+        - RunIt(duration_acq=0, file_par=)               
+        - RunLoop(duration_acq, nLoops, file_par)
+        - 
+        - menu_long()
+        =========================
+        ''')
 
 
 def interactive():
-    print(" Interactive IPython shell ")
-    print(" ========================= ")
-    print(" Quick command usage:")
-    print("  - 'who' or 'whos' to see all (locally) defined variables")
-    print("  - if the plots are shown only as black area, run '%gui qt'")
-    print("  - to make cmd prompt usable while plots are shown use 'plt.ion()' for interactive mode")
-    print("    or run 'plt.show(block=False)' to show them")
+    print('''
+        Interactive IPython shell 
+        ========================= 
+        Quick command usage:
+        - 'who' or 'whos' to see all (locally) defined variables
+        - if the plots are shown only as black area, run '%gui qt'
+        - to make cmd prompt usable while plots are shown use 'plt.ion()' for interactive mode
+            or run 'plt.show(block=False)' to show them
+        ''')
     import IPython
     IPython.embed()
 
@@ -121,10 +127,10 @@ def Search_ASPM(baudrate=115200, timeout=None, debug=False):
         if (debug): print(ports[i])
         pippo = str(ports[i])
         if (pippo.find('Arduino') > 0):
-            serialport = pippo.split(" ")[0]
+            serialport = str(pippo.split(" ")[0])
             # TODO: ? solve the com> com9 problem Francesco
-            print("Found ArduSiPM in port " + str(serialport))
-            return (str(serialport))
+            print(f"Found ArduSiPM in port {serialport}")
+            return serialport
         else:
             print("no ArduSiPM, looking more...")
 # _______________________________________________________________________________
@@ -152,7 +158,7 @@ def Scrivi_Seriale(comando, ser):
         ser.write(str(comando).encode('utf-8'))
         time.sleep(2)
         ser.write(str('e').encode('utf-8'))
-        print('wrote on serial '+str(comando))
+        print(f'wrote on serial {str(comando)}')
         time.sleep(0.5)
 # _______________________________________________________________________________
 
@@ -269,7 +275,7 @@ def RunLoop(duration_acq, nLoops, file_par, threshold=200):
     while i <= nLoops:
         print("Run now loop n. "+str(i)+" of "+str(nLoops))
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
-        i=i+1
+        i+=1
 
 # _______________________________________________________________________________
 
