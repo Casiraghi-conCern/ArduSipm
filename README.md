@@ -1,1 +1,1 @@
-Repository containing all the material associated with our ArduSipm projects.
+Repository containing some material associated with our ArduSipm projects.
