@@ -229,7 +229,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
     '''
     start_time = datetime.now()
     stopat = start_time+timedelta(seconds=duration_acq)
-    print('Starting: '+ str(start_time) + " -> " + str(stopat))
+    print(f'Starting: {start_time} -> {stopat})
     # serial connection
     ser = serial.Serial()
     ser.baudrate = 115200
@@ -259,7 +259,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
     # ser.write(b'#') ## ADC+CPS
     ser.write(b'@') ## TDC+ADC+CPS
     time.sleep(0.5)
-    print('Acquiring now... this run will stop at '+ str(stopat))
+    print(f'Acquiring now... this run will stop at {stopat}')
     data = Acquire_ASPM(duration_acq, ser, debug=debug)
     print('SAVING DATA...')
     Save_Data(data, start_time.strftime('%y%m%d%H%M%S')+'_'+file_par+".csv")
@@ -269,11 +269,11 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
 # _______________________________________________________________________________
 
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
-    print("Start running "+nLoops+" loops of "+duration_acq+" sec each")
+    print(f"Start running {nLoops} loops of {duration_acq} sec each")
     print()
     i = 1
     while i <= nLoops:
-        print("Run now loop n. "+str(i)+" of "+str(nLoops))
+        print(f"Run now loop n {i} of {nLoops}")
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
         i+=1
 
