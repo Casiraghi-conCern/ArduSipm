@@ -271,11 +271,9 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
     print(f"Start running {nLoops} loops of {duration_acq} sec each")
     print()
-    i = 1
-    while i <= nLoops:
+    for i in range(1, nLoops+1)
         print(f"Run now loop n {i} of {nLoops}")
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
-        i+=1
 
 # _______________________________________________________________________________
 
@@ -284,7 +282,7 @@ def ScanThreshold(duration_acq=3600, debug=False, prefix=None):
     for t in range(10, 255, step):
         print(f'I will now run threshold {t} (range 10-255, steps {step})')
         time.sleep(10)
-        nomeFile = prefix + 'CTA-ThresholdScan_'+str(t)
+        nomeFile = f"{prefix}CTA-ThresholdScan_{t}"
         RunIt(duration_acq=duration_acq, file_par=nomeFile, threshold=t, debug=debug)
 
 #####################################################################################
