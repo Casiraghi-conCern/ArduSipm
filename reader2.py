@@ -213,7 +213,7 @@ def Acquire_ASPM(duration_acq, ser, debug=False):
         tdata = "u"+acq_time.strftime('%y%m%d%H%M%S.%f') + \
                 data.decode('ascii')
         if(debug): print(tdata)	
-        print(str(data) + " -> " + tdata)	
+        print(f"{str(data) -> {tdata}")
         lista.append(tdata)
         time.sleep(0.2)
     return(lista)
