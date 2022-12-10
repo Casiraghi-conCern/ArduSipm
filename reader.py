@@ -106,14 +106,14 @@ def interactive():
 '''==================
      ArduSiPM interfacing
 =================='''
-def Info_ASPM():
-    '''
-    SCOPE: call to the original info script from V.Bocci
-    INPUT: none
-    OUTPUT: print info on screen
-    '''
-    sys.path.append('Valerio/')
-    import ArduSiPM_info.py
+# def Info_ASPM():
+#     '''
+#     SCOPE: call to the original info script from V.Bocci
+#     INPUT: none
+#     OUTPUT: print info on screen
+#     '''
+#     sys.path.append('Valerio/')
+#     import ArduSiPM_info.py
 
 def Search_ASPM(baudrate=115200, timeout=None, debug=False):
     '''
@@ -128,7 +128,7 @@ def Search_ASPM(baudrate=115200, timeout=None, debug=False):
     for i in range (0,len(ports)):
         if(debug): print(ports[i])
         pippo=str(ports[i])
-        if (pippo.find('cu.usbmodem1101')>0): #Arduino
+        if (pippo.find('Arduino')>0): #Arduino
             serialport=pippo.split(" ")[0] #TODO: ? solve the com> com9 problem Francesco
             print(f"Found ArduSiPM in port {serialport}")
             return(str(serialport))
@@ -257,11 +257,9 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200, debug=False):
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
     print(f'Start running {nLoops} loops of {duration_acq} sec each')
     print()
-    i = 1
-    while i <= nLoops:
+    for i in range(nLoops+1):
         print(f'Run now loop n. {i} of {nLoops}')
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
-        i=i+1
 
 def ScanThreshold(duration_acq=3600, debug=False, prefix=None):
     step = 20
