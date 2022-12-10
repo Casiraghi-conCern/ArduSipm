@@ -106,14 +106,14 @@ def interactive():
 '''==================
      ArduSiPM interfacing
 =================='''
-# def Info_ASPM():
-#     '''
-#     SCOPE: call to the original info script from V.Bocci
-#     INPUT: none
-#     OUTPUT: print info on screen
-#     '''
-#     sys.path.append('Valerio/')
-#     import ArduSiPM_info.py
+def Info_ASPM():
+    '''
+    SCOPE: call to the original info script from V.Bocci
+    INPUT: none
+    OUTPUT: print info on screen
+    '''
+    sys.path.append('Valerio/')
+    # import ArduSiPM_info.py
 
 def Search_ASPM(baudrate=115200, timeout=None, debug=False):
     '''
