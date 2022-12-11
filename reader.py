@@ -125,7 +125,7 @@ def Search_ASPM(baudrate=115200, timeout=None, debug=False):
     #Scan Serial ports and found ArduSiPM
     if(debug): print('Serial ports available:')
     ports = list(serial.tools.list_ports.comports())
-    for i in range (len(ports)):
+    for i in range(len(ports)):
         if(debug): print(ports[i])
         pippo=str(ports[i])
         if (pippo.find('Arduino')>0): #Arduino
