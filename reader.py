@@ -128,7 +128,7 @@ def Search_ASPM(baudrate=115200, timeout=None, debug=False):
     for i in range(len(ports)):
         if(debug): print(ports[i])
         pippo=str(ports[i])
-        if (pippo.find('Arduino')>0): #Arduino
+        if (pippo.find('Arduino')>0) or (pippo.find('cu.usbmodem')>0):
             serialport=pippo.split(" ")[0] #TODO: ? solve the com> com9 problem Francesco
             print(f"Found ArduSiPM in port {serialport}")
             return(str(serialport))
