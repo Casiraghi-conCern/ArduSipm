@@ -202,9 +202,10 @@ def Acquire_ASPM(duration_acq, ser, debug=False):
         acq_time = datetime.now()
         #print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer() # Flush all the previous data in Serial port
-        #for i in range(10):
-            #data = ser.read(i).rstrip()   #hypotetical for cicle for reading data
-            #print(data)
+
+        # data = ser.read_until(r'\n')
+        # print(data)
+
         data = ser.readline().rstrip()
         tdata = f"u{acq_time.strftime('%y%m%d%H%M%S.%f')}{data.decode('ascii')}"
         if(debug): print(tdata)
