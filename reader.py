@@ -348,6 +348,8 @@ backg_color = "#F0F0F0"
 buttons_color = "#ECECEC"
 
 current_dir = os.getcwd()
+csv_files = os.path.join(current_dir, "csv_files")
+icon_path = os.path.join(current_dir, "utilities", "icon.ico")
 
 #-------------------------------------------------------------
 ## main window
@@ -355,7 +357,7 @@ current_dir = os.getcwd()
 root = Tk()
 root.title("ArduSipm - Reader")
 root.geometry("1100x600-100-100")
-root.iconbitmap(rf"{current_dir}\utilities\icon.ico")
+root.iconbitmap(icon_path)
 root.resizable(False, False)
 
 #-------------------------------------------------------------
@@ -384,10 +386,10 @@ file_menu.add_command(label="Exit", command=root.quit)
 active_canvas = Canvas(root, bg=f"{backg_color}")
 
 save_path = StringVar()
-save_path.set(current_dir)
+save_path.set(csv_files)
 
-paths_cbox = ttk.Combobox(active_canvas, values=[current_dir], width=50, state="readonly",
-                           textvariable=save_path)
+paths_cbox = ttk.Combobox(active_canvas, values=[csv_files], 
+                          width=57, state="readonly", textvariable=save_path)
 paths_button = Button(active_canvas, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
 path_label = Label(active_canvas, text="Destination of the CSV files:")
@@ -432,9 +434,9 @@ h_label.place(x=x_time+30, y=y_time)
 m_label.place(x=x_time+110, y=y_time)
 s_label.place(x=x_time+190, y=y_time)
 
-paths_cbox.place(x=x_time+540, y=y_time)
+paths_cbox.place(x=x_time+510, y=y_time)
 paths_button.place(x=x_time+880, y=y_time-3)
-path_label.place(x=x_time+385, y=y_time)
+path_label.place(x=x_time+355, y=y_time)
 
 #--------------------------------------------------------------
 
