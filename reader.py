@@ -14,16 +14,8 @@ import IPython
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
-
 import os
-import csv
-import numpy as np
-import pandas as pd
 
-# import aaa_scripts
-# import Utility as ut
-# import a_load as lf
-# import a_analysis as an
 
 #-------------------------------------------------------------
 ## GUI functions
@@ -67,68 +59,6 @@ def choose_path():
 #-------------------------------------------------------------
 ## reader functions
 
-def menu_long(): 
-    print('''
-    ===========================
-        WELCOME TO ArduSiPM   
-    ===========================
-    type menu() for this menu
-
-    available functions are:
-
-    - Info_ASPM():             Retrive basic information from ArduSiPM 
-    - Acquire_ASPM():          Open connection and start acquisition
-    - Save_Data():             Save recorded data on a file
-    
-    - lf.Load_Curti_xlsx():    Load data from xlsx output file
-    - lf.LoadMerge_xlsx():     Load all files from a folder (xlsx)
-    - lf.Load_csv():           Load data from CVS output file
-    - lf.LoadMerge_cvs():      Load all files from a folder (cvs)
-    
-    - Plot_ADC():              1D plot of ADC spectra
-    
-    - RunIt():               
-    - RunLoop():
-    - Acquire_ASPM()
-    
-    - menu_long()
-    ===========================
-
-    ''')
-def menu():
-    print('''
-    ===========================
-        WELCOME TO ArduSiPM   
-    ===========================
-    type menu() for this menu
-    
-    available functions are:
-
-    - Info_ASPM()
-    - lf.Load_csv(filename=, debug=)
-    - lf.LoadMerge_cvs(directory=, InName=, OutName=, debug=)
-
-    - Plot_ADC(dati, binsize=16, hRange=[0,4000])
-
-    - RunIt(duration_acq=0, file_par=)
-    - RunLoop(duration_acq, nLoops, file_par)
-
-    - menu_long()
-    ===========================
-    
-    ''')
-def interactive():
-    print('''
-    Interactive IPython shell 
-    ===========================
-    Quick command usage:
-    - 'who' or 'whos' to see all (locally) defined variables
-    - if the plots are shown only as black area, run '%gui qt'
-    - to make cmd prompt usable while plots are shown use
-      'plt.ion()' for interactive mode or run 
-      'plt.show(block=False)' to show them
-    ''')
-    IPython.embed()
 def Info_ASPM():
     '''
     SCOPE: call to the original info script from V.Bocci
@@ -301,7 +231,6 @@ def ScanThreshold(duration_acq=3600, prefix=None):
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
         RunIt(duration_acq=duration_acq, file_par=nomeFile, threshold=t, debug=debug)
 
-# menu()
 # interactive()
 
 #-------------------------------------------------------------------------------------
