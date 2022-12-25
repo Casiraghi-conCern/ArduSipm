@@ -10,10 +10,6 @@ import time
 from datetime import datetime, timedelta
 import serial
 import serial.tools.list_ports
-import IPython
-import matplotlib
-import matplotlib.pyplot as plt
-matplotlib.use('TkAgg')
 import os
 
 
