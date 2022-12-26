@@ -283,11 +283,10 @@ root = Tk()
 root.title("ArduSipm - Reader")
 root.geometry("1100x600-100-100")
 root.iconbitmap(icon_path)
-root.resizable(False, False)
+root.resizable(True, True)
 
 #-------------------------------------------------------------
 ## shown text
-
 output_frame = Frame(root, bg="blue")
 
 output = scrolledtext.ScrolledText(root, width=100, height=25)
