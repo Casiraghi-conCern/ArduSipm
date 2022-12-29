@@ -380,18 +380,24 @@ tot_hours = IntVar()
 tot_mins = IntVar()
 tot_secs = IntVar()
 
-sp_box = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours)
-sp_box.pack(side="left")
+acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
+                        from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
+acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins, 
+                        from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
+acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs, 
+                        from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
 
-acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours, 
-                       validatecommand=(root.register(validate_hours), "%P"), width=3)
-acq_time_mins = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins, 
-                      validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
-acq_time_seconds = Entry(main_frame, justify="right", validate="all", textvariable=tot_secs,
-                         validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
+# acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours, 
+#                        validatecommand=(root.register(validate_hours), "%P"), width=3)
+# acq_time_minutes = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins, 
+#                       validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
+# acq_time_seconds = Entry(main_frame, justify="right", validate="all", textvariable=tot_secs,
+#                          validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
 
 run_button = Button(main_frame, text="Run", command=lambda: RunIt(sum_times()),
                      bg=f"{buttons_color}")
+
+sep_1 = ttk.Separator()
 
 # prog_bar = ttk.Progressbar(maximum=tempo_acq, ecc)
 
@@ -412,7 +418,7 @@ run_button.pack(side="left", padx=50)
 acq_time_hours.pack(side="left")
 h_label.pack(side="left")
 
-acq_time_mins.pack(side="left")
+acq_time_minutes.pack(side="left")
 m_label.pack(side="left")
 
 acq_time_seconds.pack(side="left")
