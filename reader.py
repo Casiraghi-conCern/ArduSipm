@@ -23,41 +23,42 @@ def out_ins(text):
     output.see(END)
     output.config(state="disabled")
 
-def change_debug(event):
-    global debug
-    debug = not debug
-
-def validate_mins_secs(value):
-    if value.isdigit() and len(str(value)) != 4:
+def validate_hours(value):
+    if value=='':
+        return True
+    elif value.isdigit() and len(str(value)) <= 3:
         value = int(value)
-        if 0 <= value <= 60:
+        if 0 <= value < 1000:
             return True
     return False
 
-def validate_hours(value):
-    if value.isdigit() and len(str(value)) != 4:
+def validate_mins_secs(value):
+    if value=='':
+        return True
+    elif value.isdigit() and len(str(value)) <= 2:
         value = int(value)
-        if 0 <= value <= 999:
+        if 0 <= value < 60:
             return True
     return False
 
 def sum_times():
     global tot_hours, tot_mins, tot_secs
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
-    tot = secs+60*mins+3600*hours
-    return tot
 
+    tot_secs = secs+60*mins+3600*hours
+    return tot_secs
 def choose_path():
-    global paths_cbox, save_path
+    global save_path, shown_path
     path = filedialog.askdirectory()
     save_path.set(path)
+    shown_path.set("Destination of the CSV files:           " + path)
 
     tup = (path,)
-    values = paths_cbox["values"]
+    # values = paths_cbox["values"]
     
-    paths_cbox["values"] = values + tup
+    # paths_cbox["values"] = values + tup
 
-def replace(widget, corner=False):
+def replace(widget, corner=False, which="both", positioning="prop"):
     global root_x, root_y
 
     w_x, w_y = widget.winfo_x(), widget.winfo_y()
@@ -321,8 +322,8 @@ icon_path = os.path.join(current_dir, "utilities", "icon.ico")
 root = Tk()
 
 screen_x, screen_y = root.winfo_screenwidth(), root.winfo_screenheight()
-root_x, root_y = int(screen_x*55/64), int(screen_y*25/32)
-min_x = int(root_x*7/11)
+root_x, root_y = int(screen_x*5/6), int(screen_y*5/6)
+min_x = int(root_x*4/6)
 min_y = int(min_x*root_y/root_x)
 
 root.title("ArduSipm - Reader")
@@ -334,7 +335,7 @@ root.after(check_time, check_config)
 
 #-------------------------------------------------------------
 ## shown text
-output_frame = Frame(root, bg="blue", width=100, height=100)
+# output_frame = Frame(root, bg="blue", width=100, height=100)
 
 output = scrolledtext.ScrolledText(root, width=60, height=25)
 out_ins(initial_text)
@@ -356,66 +357,74 @@ file_menu.add_command(label="Exit", command=root.quit)
 
 save_path = StringVar()
 save_path.set(csv_files)
+shown_path = StringVar()
+shown_path.set("Destination of the CSV files:           " + csv_files)
 
-paths_cbox = ttk.Combobox(root, values=[csv_files], 
-                          width=57, state="readonly", textvariable=save_path)
+# paths_cbox = ttk.Combobox(root, values=[csv_files], 
+                        #   width=56, state="readonly", textvariable=save_path, justify="right")
 paths_button = Button(root, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
-path_label = Label(root, text="Destination of the CSV files:")
+path_label = Label(root, textvariable=shown_path)
 
 # active_canvas.create_line(2, 2, 1100, 2, fill="grey")
 # active_canvas.create_rectangle(2, 4, 1097, 173, outline="grey")
 # active_canvas.create_rectangle(x_time-51, y_time-2, 78, 41)
 
-h_label = Label(root, text="hours")
-m_label = Label(root, text="mins")
-s_label = Label(root, text="secs")
+main_frame = Frame(root)
+
+h_label = Label(main_frame, text="hours")
+m_label = Label(main_frame, text="mins")
+s_label = Label(main_frame, text="secs")
 
 tot_hours = IntVar()
 tot_mins = IntVar()
 tot_secs = IntVar()
 
+sp_box = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours)
+sp_box.pack(side="left")
 
-time_frame = Frame(root, bg="red", width=40, height=20)
+acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours, 
+                       validatecommand=(root.register(validate_hours), "%P"), width=3)
+acq_time_mins = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins, 
+                      validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
+acq_time_seconds = Entry(main_frame, justify="right", validate="all", textvariable=tot_secs,
+                         validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
 
-acq_time_hours = Entry(root, justify="right", validate="key", textvariable=tot_hours, 
-                       validatecommand=(root.register(validate_hours), "%P"))
-acq_time_mins = Entry(root, justify="right", validate="key", textvariable=tot_mins, 
-                      validatecommand=(root.register(validate_mins_secs), "%P"))
-acq_time_seconds = Entry(root, justify="right", validate="key", textvariable=tot_secs,
-                         validatecommand=(root.register(validate_mins_secs), "%P"))
-
-run_button = Button(root, text="Run", command=lambda: RunIt(sum_times()),
+run_button = Button(main_frame, text="Run", command=lambda: RunIt(sum_times()),
                      bg=f"{buttons_color}")
 
-debug_checkbox = Checkbutton(root, text="Debug")
-debug_checkbox.bind("<Button-1>", change_debug)
+# prog_bar = ttk.Progressbar(maximum=tempo_acq, ecc)
 
 #--------------------------------------------------------------
 ## packing everything
 
-output_frame.place(x=300, y=50)
+# output_frame.place(x=300, y=50)
 
 output.place(x=250, y=0)
 
 #active_canvas.pack(side=BOTTOM, fill=BOTH, expand=True)
-run_button.place(x=x_time-50, y=y_time - 1)
-debug_checkbox.place(x=x_time+230, y=y_time-2)
+# run_button.place(x=10, y=y_time - 1)
 
-acq_time_hours.place(x=x_time, y=y_time, width=25, height=20)
-acq_time_mins.place(x=x_time+80, y=y_time, width=25, height=20)
-acq_time_seconds.place(x=x_time+160, y=y_time, width=25, height=20)
+main_frame.place(x=x_time, y=y_time)
 
-h_label.place(x=x_time+30, y=y_time)
-m_label.place(x=x_time+110, y=y_time)
-s_label.place(x=x_time+190, y=y_time)
+run_button.pack(side="left", padx=50)
 
-paths_cbox.place(x=x_time+510, y=y_time)
-paths_button.place(x=x_time+880, y=y_time-3)
-path_label.place(x=x_time+355, y=y_time)
+acq_time_hours.pack(side="left")
+h_label.pack(side="left")
+
+acq_time_mins.pack(side="left")
+m_label.pack(side="left")
+
+acq_time_seconds.pack(side="left")
+s_label.pack(side="left")
+
+# paths_cbox.place(x=x_time+510, y=y_time)
+paths_button.place(x=root_x-(paths_button.winfo_width()+100), y=y_time)
+# path_label.place(x=x_time+355, y=y_time)
+path_label.pack(side='bottom', anchor="se")
 
 #--------------------------------------------------------------
-replaceable_w = [s_label, m_label, h_label, acq_time_hours, acq_time_mins, 
-                acq_time_seconds, paths_button, paths_cbox, path_label, debug_checkbox, 
-                output_frame, output, run_button]
+replaceable_w = [output, main_frame]
+replaceable_w_x = [paths_button]
+replaceable_w_y = [paths_button]
 root.mainloop()
