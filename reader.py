@@ -13,8 +13,8 @@ import serial.tools.list_ports
 import os
 
 
-#-------------------------------------------------------------
-## GUI functions
+# -------------------------------------------------------------
+# GUI functions
 
 def out_ins(text):
     global output
@@ -23,8 +23,9 @@ def out_ins(text):
     output.see(END)
     output.config(state="disabled")
 
+
 def validate_hours(value):
-    if value=='':
+    if value == '':
         return True
     elif value.isdigit() and len(str(value)) <= 3:
         value = int(value)
@@ -32,8 +33,9 @@ def validate_hours(value):
             return True
     return False
 
+
 def validate_mins_secs(value):
-    if value=='':
+    if value == '':
         return True
     elif value.isdigit() and len(str(value)) <= 2:
         value = int(value)
@@ -41,12 +43,19 @@ def validate_mins_secs(value):
             return True
     return False
 
+
 def sum_times():
     global tot_hours, tot_mins, tot_secs
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
 
-    tot_secs = secs+60*mins+3600*hours
-    return tot_secs
+    secs = int(secs) if secs != '' else 0
+    mins = int(mins) if mins != '' else 0
+    hours = int(hours) if hours != '' else 0
+
+    tot = secs+60*mins+3600*hours
+    return tot
+
+
 def choose_path():
     global save_path, shown_path
     path = filedialog.askdirectory()
@@ -55,8 +64,9 @@ def choose_path():
 
     tup = (path,)
     # values = paths_cbox["values"]
-    
+
     # paths_cbox["values"] = values + tup
+
 
 def replace(widget, corner=False, which="both", positioning="prop"):
     global root_x, root_y
@@ -68,7 +78,8 @@ def replace(widget, corner=False, which="both", positioning="prop"):
     if w_x == 0 and w_y == 0 and not corner:
         return
     widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
-    
+
+
 def replace_all():
     global replaceable_w, root_x, root_y
 
@@ -77,14 +88,16 @@ def replace_all():
 
     root_x, root_y = root.winfo_width(), root.winfo_height()
 
+
 def check_config():
-    global check_time   
-    if not(root_x == root.winfo_width() and root_y == root.winfo_height()):
+    global check_time
+    if not (root_x == root.winfo_width() and root_y == root.winfo_height()):
         replace_all()
     root.after(check_time, check_config)
 
-#-------------------------------------------------------------
-## reader functions
+# -------------------------------------------------------------
+# reader functions
+
 
 def Info_ASPM():
     '''
@@ -94,6 +107,7 @@ def Info_ASPM():
     '''
     sys.path.append('Valerio/')
 
+
 def Search_ASPM(baudrate=115200, timeout=None):
     '''
     SCOPE: search for ArduSiPM
@@ -102,59 +116,66 @@ def Search_ASPM(baudrate=115200, timeout=None):
     OUTPUT: string with serial name
     '''
     global debug
-    #Scan Serial ports and found ArduSiPM
-    if(debug): out_ins("Serial ports available:") #print('Serial ports available:')
+    # Scan Serial ports and found ArduSiPM
+    if (debug):
+        out_ins("Serial ports available:")  # print('Serial ports available:')
     ports = list(serial.tools.list_ports.comports())
     for i in range(len(ports)):
-        if(debug): out_ins(ports[i]) #print(ports[i])
-        pippo=str(ports[i])
-        if (pippo.find('Arduino')>0) or (pippo.find('cu.usbmodem')>0):
-            serialport=pippo.split(" ")[0] #TODO: ? solve the com> com9 problem Francesco
-            #print(f"Found ArduSiPM in port {serialport}")
+        if (debug):
+            out_ins(ports[i])  # print(ports[i])
+        pippo = str(ports[i])
+        if (pippo.find('Arduino') > 0) or (pippo.find('cu.usbmodem') > 0):
+            # TODO: ? solve the com> com9 problem Francesco
+            serialport = pippo.split(" ")[0]
+            # print(f"Found ArduSiPM in port {serialport}")
             out_ins(f"Found ArduSiPM in port {serialport}")
-            return(str(serialport))
-        else :
-            #print("no ArduSiPM, looking more...")
+            return (str(serialport))
+        else:
+            # print("no ArduSiPM, looking more...")
             out_ins("no ArduSiPM, looking more...")
+
 
 def Apri_Seriale():
     ser = serial.Serial()
     ser.baudrate = 115200
-    ser.timeout=None
+    ser.timeout = None
     ser_num = Search_ASPM()
     if (ser_num):
-            ser.port = ser_num
-            ser.open()
-            time.sleep(1)
+        ser.port = ser_num
+        ser.open()
+        time.sleep(1)
     else:
-            #print('ArduSiPM not found please connect')
-            out_ins("ArduSiPM not found please connect")
-            return(0)
-    return(ser)
+        # print('ArduSiPM not found please connect')
+        out_ins("ArduSiPM not found please connect")
+        return (0)
+    return (ser)
+
 
 def Scrivi_Seriale(comando, ser):
-    if(ser):
+    if (ser):
         ser.write(str('m').encode('utf-8'))
         time.sleep(2)
         ser.write(str(comando).encode('utf-8'))
         time.sleep(2)
         ser.write(str('e').encode('utf-8'))
-        #print(f'wrote on serial {comando}')
+        # print(f'wrote on serial {comando}')
         out_ins(f'wrote on serial {comando}')
         time.sleep(0.5)
 
+
 def SetThreshold(threshold, ser):
-    if(ser):
+    if (ser):
         ser.write(str('m').encode('utf-8'))
         time.sleep(2)
         ser.write(str('t').encode('utf-8'))
         time.sleep(2)
-        #ser.write(threshold.to_bytes(4, 'little'))
-        #ser.write(b'10')
+        # ser.write(threshold.to_bytes(4, 'little'))
+        # ser.write(b'10')
         ser.write(str(threshold).encode('utf-8'))
         time.sleep(4)
         ser.write(str('e').encode('utf-8'))
         time.sleep(2)
+
 
 def Save_Data(data, file_name='my_data.csv'):
     '''
@@ -164,10 +185,11 @@ def Save_Data(data, file_name='my_data.csv'):
     '''
     global save_path
     with open(os.path.join(save_path.get(), file_name), 'w') as file:
-        #writer = csv.writer(file, delimiter=',')
+        # writer = csv.writer(file, delimiter=',')
         for line in data:
-            file.write(line)#.decode('ascii'))
+            file.write(line)  # .decode('ascii'))
             file.write(',')
+
 
 def Acquire_ASPM(duration_acq, ser):
     '''
@@ -180,20 +202,24 @@ def Acquire_ASPM(duration_acq, ser):
     start_acq_time = datetime.now()
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
     acq_time = datetime.now()
-    while(acq_time < stop_acq_time):
+    while (acq_time < stop_acq_time):
+
         acq_time = datetime.now()
-        #print(acq_time.strftime('%H:%M:%S'))
-        ser.reset_input_buffer() # Flush all the previous data in Serial port
+        # print(acq_time.strftime('%H:%M:%S'))
+        ser.reset_input_buffer()  # Flush all the previous data in Serial port
 
         # data = ser.read_until(r'\n')
         # print(data)
 
         data = ser.readline().rstrip()
         tdata = f"u{acq_time.strftime('%y%m%d%H%M%S.%f')}{data.decode('ascii')}"
-        if(debug): out_ins(tdata) #print(tdata)
+        if (debug):
+            out_ins(tdata)  # print(tdata)
         lista.append(tdata)
         time.sleep(0.2)
-    return(lista)
+
+    return (lista)
+
 
 def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     '''
@@ -205,72 +231,77 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     global debug
     # start_time = datetime.now()
     # stopat = start_time+timedelta(seconds=duration_acq)
-    ## serial connection
+    # serial connection
     ser = serial.Serial()
     ser.baudrate = 115200
-    ser.timeout=None #try to solve delay
+    ser.timeout = None  # try to solve delay
     ser_num = Search_ASPM()
     if (ser_num):
         ser.port = ser_num
         ser.open()
         time.sleep(1)
     else:
-        #print('ArduSiPM not found please connect')
+        # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
-        return(0)    
+        return (0)
     start_time = datetime.now()
     stopat = start_time+timedelta(seconds=duration_acq)
-    ## acquisition
-    #ser.write(b'a') # enable ADC
-    #ser.write(b'd') # enable TDC
-    #ser.write(b'h75') # set HV
-    #Scrivi_Seriale(b's3', ser)
-    #Scrivi_Seriale(b'@', ser)
-    #time.sleep(0.5)
-    #ser.write(b'@')
-    #time.sleep(0.5)
+    # acquisition
+    # ser.write(b'a') # enable ADC
+    # ser.write(b'd') # enable TDC
+    # ser.write(b'h75') # set HV
+    # Scrivi_Seriale(b's3', ser)
+    # Scrivi_Seriale(b'@', ser)
+    # time.sleep(0.5)
+    # ser.write(b'@')
+    # time.sleep(0.5)
     ser.write(b'#')
     time.sleep(0.5)
     SetThreshold(threshold, ser)
     ser.write(b'$')
     time.sleep(4)
-    #ser.write(b'#') ## ADC+CPS
-    ser.write(b'@') ## TDC+ADC+CPS
+    # ser.write(b'#') ## ADC+CPS
+    ser.write(b'@')  # TDC+ADC+CPS
     time.sleep(0.5)
-    #print(f'Acquiring now... this run will stop at {stopat}')
-    out_ins(f'starting time: {start_time} \n    Acquiring now... this run will stop at {stopat}')
+    # print(f'Acquiring now... this run will stop at {stopat}')
+    out_ins(
+        f'starting time: {start_time} \n    Acquiring now... this run will stop at {stopat}')
     data = Acquire_ASPM(duration_acq, ser)
-    #print('SAVING DATA...')
+    # print('SAVING DATA...')
     out_ins('SAVING DATA...')
     Save_Data(data, f"{start_time.strftime('%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
-    #print('Acquisition ended')
+    # print('Acquisition ended')
     out_ins('Acquisition ended\n')
     return data
 
+
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
-    #print(f'Start running {nLoops} loops of {duration_acq} sec each')
-    #print()
+    # print(f'Start running {nLoops} loops of {duration_acq} sec each')
+    # print()
     out_ins(f'Start running {nLoops} loops of {duration_acq} sec each\n')
     for i in range(nLoops+1):
-        #print(f'Run now loop n. {i} of {nLoops}')
+        # print(f'Run now loop n. {i} of {nLoops}')
         out_ins(f'Run now loop n. {i} of {nLoops}')
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
+
 
 def ScanThreshold(duration_acq=3600, prefix=None):
     global debug
     step = 20
     for t in range(10, 255, step):
-        #print(f'I will now run threshold {t} (range 10-255, steps {step})')
+        # print(f'I will now run threshold {t} (range 10-255, steps {step})')
         out_ins(f'I will now run threshold {t} (range 10-255, steps {step})')
         time.sleep(10)
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
-        RunIt(duration_acq=duration_acq, file_par=nomeFile, threshold=t, debug=debug)
+        RunIt(duration_acq=duration_acq,
+              file_par=nomeFile, threshold=t, debug=debug)
 
 # interactive()
 
-#-------------------------------------------------------------------------------------
-## useful variables
+# -------------------------------------------------------------------------------------
+# useful variables
+
 
 debug = False
 check_time = 100
@@ -283,27 +314,7 @@ initial_text = '''
     ===========================
         WELCOME TO ArduSiPM   
     ===========================
-    type menu() for this menu
-
-    available functions are:
-
-    - Info_ASPM():             Retrive basic information from ArduSiPM 
-    - Acquire_ASPM():          Open connection and start acquisition
-    - Save_Data():             Save recorded data on a file
     
-    - lf.Load_Curti_xlsx():    Load data from xlsx output file
-    - lf.LoadMerge_xlsx():     Load all files from a folder (xlsx)
-    - lf.Load_csv():           Load data from CVS output file
-    - lf.LoadMerge_cvs():      Load all files from a folder (cvs)
-    
-    - Plot_ADC():              1D plot of ADC spectra
-    
-    - RunIt():               
-    - RunLoop():
-    - Acquire_ASPM()
-    
-    - menu_long()
-    ===========================
 
     '''
 
@@ -317,8 +328,8 @@ current_dir = os.getcwd()
 csv_files = os.path.join(current_dir, "csv_files")
 icon_path = os.path.join(current_dir, "utilities", "icon.ico")
 
-#-------------------------------------------------------------
-## main window
+# -------------------------------------------------------------
+# main window
 root = Tk()
 
 screen_x, screen_y = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -333,15 +344,15 @@ root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
 root.after(check_time, check_config)
 
-#-------------------------------------------------------------
-## shown text
-# output_frame = Frame(root, bg="blue", width=100, height=100)
+# -------------------------------------------------------------
+# shown text
+# output_frame = Frame(root, width=100, height=100)
 
-output = scrolledtext.ScrolledText(root, width=60, height=25)
+output = scrolledtext.ScrolledText(root, height=25)
 out_ins(initial_text)
 
-#-------------------------------------------------------------
-## top menu
+# -------------------------------------------------------------
+# top menu
 
 menubar_1 = Menu(root)
 root.config(menu=menubar_1)
@@ -349,71 +360,86 @@ root.config(menu=menubar_1)
 file_menu = Menu(menubar_1, tearoff=0)
 menubar_1.add_cascade(label="File", menu=file_menu)
 file_menu.add_command(label="Exit", command=root.quit)
+file_menu.add_command(label="saas")
 
-#-------------------------------------------------------------
-## canvas for acquisition
+# -------------------------------------------------------------
+# canvas for acquisition
 
-#active_canvas = Canvas(root, bg=f"{backg_color}")
+# active_canvas = Canvas(root, bg=f"{backg_color}")
 
 save_path = StringVar()
 save_path.set(csv_files)
 shown_path = StringVar()
 shown_path.set("Destination of the CSV files:           " + csv_files)
 
-# paths_cbox = ttk.Combobox(root, values=[csv_files], 
-                        #   width=56, state="readonly", textvariable=save_path, justify="right")
-paths_button = Button(root, text="select path", command=choose_path,
+main_frame = Frame(root)
+footer_frame = Frame(root)
+
+
+# paths_cbox = ttk.Combobox(root, values=[csv_files],
+#   width=56, state="readonly", textvariable=save_path, justify="right")
+paths_button = Button(main_frame, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
-path_label = Label(root, textvariable=shown_path)
+path_label = Label(footer_frame, textvariable=shown_path)
 
 # active_canvas.create_line(2, 2, 1100, 2, fill="grey")
 # active_canvas.create_rectangle(2, 4, 1097, 173, outline="grey")
 # active_canvas.create_rectangle(x_time-51, y_time-2, 78, 41)
 
-main_frame = Frame(root)
 
 h_label = Label(main_frame, text="hours")
 m_label = Label(main_frame, text="mins")
 s_label = Label(main_frame, text="secs")
 
-tot_hours = IntVar()
-tot_mins = IntVar()
-tot_secs = IntVar()
+tot_hours = StringVar()
+tot_mins = StringVar()
+tot_secs = StringVar()
 
-acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
-                        from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
-acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins, 
-                        from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
-acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs, 
-                        from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
+acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
+                         from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
+acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
+acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
 
-# acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours, 
+# acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours,
 #                        validatecommand=(root.register(validate_hours), "%P"), width=3)
-# acq_time_minutes = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins, 
+# acq_time_minutes = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins,
 #                       validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
 # acq_time_seconds = Entry(main_frame, justify="right", validate="all", textvariable=tot_secs,
 #                          validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
 
+footer_frame.pack(side="bottom", fill="x")
+
 run_button = Button(main_frame, text="Run", command=lambda: RunIt(sum_times()),
-                     bg=f"{buttons_color}")
+                    bg=f"{buttons_color}")
 
-sep_1 = ttk.Separator()
+prog = IntVar()
 
-# prog_bar = ttk.Progressbar(maximum=tempo_acq, ecc)
+prog_bar = ttk.Progressbar(root, maximum=100,
+                           length=500, variable=prog)
+prog_bar.pack()
 
-#--------------------------------------------------------------
-## packing everything
+# --------------------------------------------------------------
+# packing everything
 
 # output_frame.place(x=300, y=50)
 
-output.place(x=250, y=0)
+# output.place(x=250, y=0)
+# output_frame.pack(side="top", fill="x")
 
-#active_canvas.pack(side=BOTTOM, fill=BOTH, expand=True)
+output.pack(side="top", fill="x")
+
+
+# placeholder = Frame(output_frame)
+# placeholder.pack(side="left",)
+
+
+# active_canvas.pack(side=BOTTOM, fill=BOTH, expand=True)
 # run_button.place(x=10, y=y_time - 1)
 
-main_frame.place(x=x_time, y=y_time)
-
-run_button.pack(side="left", padx=50)
+# main_frame.place(x=x_time, y=y_time)
+main_frame.pack(pady=15)
 
 acq_time_hours.pack(side="left")
 h_label.pack(side="left")
@@ -424,13 +450,15 @@ m_label.pack(side="left")
 acq_time_seconds.pack(side="left")
 s_label.pack(side="left")
 
-# paths_cbox.place(x=x_time+510, y=y_time)
-paths_button.place(x=root_x-(paths_button.winfo_width()+100), y=y_time)
-# path_label.place(x=x_time+355, y=y_time)
-path_label.pack(side='bottom', anchor="se")
+run_button.pack(side="left", padx=10)
 
-#--------------------------------------------------------------
-replaceable_w = [output, main_frame]
-replaceable_w_x = [paths_button]
-replaceable_w_y = [paths_button]
+paths_button.pack(side="left")
+# paths_cbox.place(x=x_time+510, y=y_time)
+# path_label.place(x=x_time+355, y=y_time)
+path_label.pack(side='bottom', anchor="se", padx=10)
+
+# --------------------------------------------------------------
+replaceable_w = []
+replaceable_w_x = []
+replaceable_w_y = []
 root.mainloop()
