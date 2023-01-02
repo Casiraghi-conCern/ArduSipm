@@ -23,7 +23,6 @@ def out_ins(text):
     output.see(END)
     output.config(state="disabled")
 
-
 def validate_hours(value):
     if value == '':
         return True
@@ -33,8 +32,7 @@ def validate_hours(value):
             return True
     return False
 
-
-def validate_mins_secs(value):
+def validate_mins(value):
     if value == '':
         return True
     elif value.isdigit() and len(str(value)) <= 2:
@@ -43,6 +41,14 @@ def validate_mins_secs(value):
             return True
     return False
 
+def validate_secs(value):
+    if value == '':
+        return True
+    elif value.isdigit() and len(str(value)) <= 2:
+        value = int(value)
+        if 0 <= value < 60:
+            return True
+    return False
 
 def sum_times():
     global tot_hours, tot_mins, tot_secs
@@ -55,7 +61,6 @@ def sum_times():
     tot = secs+60*mins+3600*hours
     return tot
 
-
 def choose_path():
     global save_path, shown_path
     path = filedialog.askdirectory()
@@ -66,7 +71,6 @@ def choose_path():
     # values = paths_cbox["values"]
 
     # paths_cbox["values"] = values + tup
-
 
 def replace(widget, corner=False, which="both", positioning="prop"):
     global root_x, root_y
@@ -79,7 +83,6 @@ def replace(widget, corner=False, which="both", positioning="prop"):
         return
     widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
 
-
 def replace_all():
     global replaceable_w, root_x, root_y
 
@@ -87,7 +90,6 @@ def replace_all():
         replace(w)
 
     root_x, root_y = root.winfo_width(), root.winfo_height()
-
 
 def check_config():
     global check_time
@@ -398,9 +400,9 @@ tot_secs = StringVar()
 acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
 acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
-                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins), "%P"))
 acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
-                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins_secs), "%P"))
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_secs), "%P"))
 
 # acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours,
 #                        validatecommand=(root.register(validate_hours), "%P"), width=3)
