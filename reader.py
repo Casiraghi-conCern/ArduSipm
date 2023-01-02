@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
-from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import scrolledtext
-
+import os
 import sys
+import threading
 import time
 from datetime import datetime, timedelta
+from tkinter import *
+from tkinter import filedialog, scrolledtext, ttk
+
 import serial
 import serial.tools.list_ports
-import os
-
 
 # -------------------------------------------------------------
 # GUI functions
@@ -110,7 +108,7 @@ def Info_ASPM():
     sys.path.append('Valerio/')
 
 
-def Search_ASPM(baudrate=115200, timeout=None):
+def Search_ASPM():
     '''
     SCOPE: search for ArduSiPM
     NOTE: copied and adapted from the original script from V.Bocci
@@ -200,6 +198,11 @@ def Acquire_ASPM(duration_acq, ser):
     OUTPUT: a DataFraMe with the data
     '''
     global debug
+    # prog_bar.stop()
+    # prog_bar = ttk.Progressbar(root, maximum=100,
+    #     length=500, variable=prog, mode="determinate")
+    # prog_bar.pack()
+    # prog_bar.start()
     lista = []
     start_acq_time = datetime.now()
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
@@ -245,7 +248,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     else:
         # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
-        return (0)
+        return(0)
+    prog_bar.start()
     start_time = datetime.now()
     stopat = start_time+timedelta(seconds=duration_acq)
     # acquisition
@@ -274,6 +278,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     Save_Data(data, f"{start_time.strftime('%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
     # print('Acquisition ended')
+    prog_bar.stop()
     out_ins('Acquisition ended\n')
     return data
 
@@ -303,6 +308,8 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 
 # -------------------------------------------------------------------------------------
 # useful variables
+
+run_thread = threading.Thread(target=lambda: RunIt(sum_times()))
 
 
 debug = False
@@ -350,7 +357,7 @@ root.after(check_time, check_config)
 # shown text
 # output_frame = Frame(root, width=100, height=100)
 
-output = scrolledtext.ScrolledText(root, height=25)
+output = scrolledtext.ScrolledText(root, height=25, highlightthickness=0, )
 out_ins(initial_text)
 
 # -------------------------------------------------------------
@@ -362,12 +369,9 @@ root.config(menu=menubar_1)
 file_menu = Menu(menubar_1, tearoff=0)
 menubar_1.add_cascade(label="File", menu=file_menu)
 file_menu.add_command(label="Exit", command=root.quit)
-file_menu.add_command(label="saas")
 
 # -------------------------------------------------------------
 # canvas for acquisition
-
-# active_canvas = Canvas(root, bg=f"{backg_color}")
 
 save_path = StringVar()
 save_path.set(csv_files)
@@ -377,17 +381,11 @@ shown_path.set("Destination of the CSV files:           " + csv_files)
 main_frame = Frame(root)
 footer_frame = Frame(root)
 
-
 # paths_cbox = ttk.Combobox(root, values=[csv_files],
 #   width=56, state="readonly", textvariable=save_path, justify="right")
 paths_button = Button(main_frame, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
 path_label = Label(footer_frame, textvariable=shown_path)
-
-# active_canvas.create_line(2, 2, 1100, 2, fill="grey")
-# active_canvas.create_rectangle(2, 4, 1097, 173, outline="grey")
-# active_canvas.create_rectangle(x_time-51, y_time-2, 78, 41)
-
 
 h_label = Label(main_frame, text="hours")
 m_label = Label(main_frame, text="mins")
@@ -404,43 +402,25 @@ acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=to
 acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
                            from_=0, to=59, validate="all", validatecommand=(root.register(validate_secs), "%P"))
 
-# acq_time_hours = Entry(main_frame, justify="right", validate="all", textvariable=tot_hours,
-#                        validatecommand=(root.register(validate_hours), "%P"), width=3)
-# acq_time_minutes = Entry(main_frame, justify="right", validate="all", textvariable=tot_mins,
-#                       validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
-# acq_time_seconds = Entry(main_frame, justify="right", validate="all", textvariable=tot_secs,
-#                          validatecommand=(root.register(validate_mins_secs), "%P"), width=3)
-
 footer_frame.pack(side="bottom", fill="x")
 
-run_button = Button(main_frame, text="Run", command=lambda: RunIt(sum_times()),
-                    bg=f"{buttons_color}")
+run_button = Button(main_frame, text="Run", command=lambda: run_thread.start(), bg=f"{buttons_color}")
 
 prog = IntVar()
 
 prog_bar = ttk.Progressbar(root, maximum=100,
-                           length=500, variable=prog)
+                           length=500, variable=prog, mode="indeterminate")
 prog_bar.pack()
+
+# prog_bar.step()
+# prog_bar.start(20)
+# prog_bar.stop()
 
 # --------------------------------------------------------------
 # packing everything
 
-# output_frame.place(x=300, y=50)
-
-# output.place(x=250, y=0)
-# output_frame.pack(side="top", fill="x")
-
 output.pack(side="top", fill="x")
 
-
-# placeholder = Frame(output_frame)
-# placeholder.pack(side="left",)
-
-
-# active_canvas.pack(side=BOTTOM, fill=BOTH, expand=True)
-# run_button.place(x=10, y=y_time - 1)
-
-# main_frame.place(x=x_time, y=y_time)
 main_frame.pack(pady=15)
 
 acq_time_hours.pack(side="left")
@@ -455,8 +435,6 @@ s_label.pack(side="left")
 run_button.pack(side="left", padx=10)
 
 paths_button.pack(side="left")
-# paths_cbox.place(x=x_time+510, y=y_time)
-# path_label.place(x=x_time+355, y=y_time)
 path_label.pack(side='bottom', anchor="se", padx=10)
 
 # --------------------------------------------------------------
