@@ -337,6 +337,13 @@ current_dir = os.getcwd()
 csv_files = os.path.join(current_dir, "csv_files")
 icon_path = os.path.join(current_dir, "utilities", "icon.ico")
 
+if not os.path.exists(csv_files):
+    os.mkdir("csv_files")
+
+if not os.path.exists(icon_path):
+    os.mkdir("utilities")
+    with open(icon_path, "w"): pass
+
 # -------------------------------------------------------------
 # main window
 root = Tk()
@@ -411,10 +418,6 @@ prog = IntVar()
 prog_bar = ttk.Progressbar(root, maximum=100,
                            length=500, variable=prog, mode="indeterminate")
 prog_bar.pack()
-
-# prog_bar.step()
-# prog_bar.start(20)
-# prog_bar.stop()
 
 # --------------------------------------------------------------
 # packing everything
