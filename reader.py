@@ -350,7 +350,7 @@ min_x = int(root_x*4/6)
 min_y = int(min_x*root_y/root_x)
 
 root.title("ArduSipm - Reader")
-root.geometry(f"{root_x}x{root_y}-100-100")
+root.geometry(f"{root_x}x{root_y}-100-70")
 try: root.iconbitmap(icon_path)
 except TclError: pass
 root.resizable(True, True)
@@ -361,7 +361,7 @@ root.after(check_time, check_config)
 # shown text
 # output_frame = Frame(root, width=100, height=100)
 
-output = scrolledtext.ScrolledText(root, height=25, highlightthickness=0, )
+output = scrolledtext.ScrolledText(root, height=25, highlightthickness=0)
 out_ins(initial_text)
 
 # -------------------------------------------------------------
