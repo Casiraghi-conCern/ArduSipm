@@ -340,10 +340,6 @@ icon_path = os.path.join(current_dir, "utilities", "icon.ico")
 if not os.path.exists(csv_files):
     os.mkdir("csv_files")
 
-if not os.path.exists(icon_path):
-    os.mkdir("utilities")
-    with open(icon_path, "w"): pass
-
 # -------------------------------------------------------------
 # main window
 root = Tk()
@@ -355,7 +351,8 @@ min_y = int(min_x*root_y/root_x)
 
 root.title("ArduSipm - Reader")
 root.geometry(f"{root_x}x{root_y}-100-100")
-root.iconbitmap(icon_path)
+try: root.iconbitmap(icon_path)
+except TclError: pass
 root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
 root.after(check_time, check_config)
