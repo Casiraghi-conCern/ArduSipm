@@ -262,6 +262,10 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
         out_ins("ArduSiPM not found please connect")
         return(0)
     run_button.configure(state="disabled")
+    paths_button.configure(state="disabled")
+    acq_time_hours.configure(state="disabled")
+    acq_time_minutes.configure(state="disabled")
+    acq_time_seconds.configure(state="disabled")
     prog_bar.configure(mode="indeterminate")
     prog_bar.start()
     start_time = datetime.now()
@@ -295,6 +299,10 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     prog_bar.stop()
     out_ins('Acquisition ended\n')
     run_button.configure(state="normal")
+    paths_button.configure(state="normal")
+    acq_time_hours.configure(state="normal")
+    acq_time_minutes.configure(state="normal")
+    acq_time_seconds.configure(state="normal")
     return data
 
 
