@@ -101,7 +101,7 @@ def check_config():
 
 def launch_run():
     global can_run, stop_threads
-    while not stop_threads.is_set():
+    while not stop_threads:
         if can_run:
             RunIt(sum_times())
             can_run = False
@@ -111,31 +111,6 @@ def allow_run():
     if not run_thread.is_alive():
         run_thread.start()
     can_run = True
-
-# def stop_threads():
-#     global stop_threads
-#     stop_threads.set()
-#     root.destroy()
-#     return
-
-def launch_run():
-     global can_run, stop_threads
-     while not stop_threads.is_set():
-         if can_run:
-             RunIt(sum_times())
-             can_run = False
-
-def allow_run():
-    global can_run
-    if not run_thread.is_alive():
-        run_thread.start()
-    can_run = True
-
- # def stop_threads():
- #     global stop_threads
- #     stop_threads.set()
- #     root.destroy()
- #     return
 
 # -------------------------------------------------------------
 # reader functions
@@ -353,7 +328,7 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 
 debug = False
 check_time = 100
-stop_threads = threading.Event()
+stop_threads = False
 can_run = True
 
 
@@ -397,7 +372,7 @@ try: root.iconbitmap(icon_path)
 except TclError: pass
 root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
-root.after(check_time, check_config)
+#root.after(check_time, check_config)
 
 # -------------------------------------------------------------
 # shown text
@@ -492,3 +467,5 @@ replaceable_w = []
 replaceable_w_x = []
 replaceable_w_y = []
 root.mainloop()
+
+stop_threads = True
