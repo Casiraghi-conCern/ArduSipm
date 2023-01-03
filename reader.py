@@ -101,11 +101,42 @@ def allow_run():
         run_thread.start()
     can_run = True
 
+def info_format():
+    global run_durat
+    s_hours, s_mins, s_secs = 0, 0, 0
+    result = ""
+
+    pady = 15
+    run_durat_label.pack(anchor="w", padx=20, pady=pady)
+    start_time_label.pack(anchor="w", padx=20, pady=pady)
+    stop_time_label.pack(anchor="w", padx=20, pady=pady)
+    time_pass_label.pack(anchor="w", padx=20, pady=pady)
+    time_left_label.pack(anchor="w", padx=20, pady=pady)
+    for item, s_var in zip([s_hours, s_mins, s_secs], [tot_hours, tot_mins, tot_secs]):
+        if len(s_var.get()) == 0:
+            item = "00"
+        elif len(s_var.get()) == 1:
+            item = "0"+s_var.get()
+        else:
+            item = s_var.get()
+        result+=item+":"
+    result=result[:(len(result)-1)]
+    run_durat.set(f"Run time:   {result}")
+
+def unpack():
+    run_durat_label.pack_forget()
+    start_time_label.pack_forget()
+    stop_time_label.pack_forget()
+    time_pass_label.pack_forget()
+    time_left_label.pack_forget()
+
+    
+
 # -------------------------------------------------------------
 # reader functions
 
 
-def Info_ASPM(ser):
+def Info_ASPM():
     '''
     SCOPE: call to the original info script from V.Bocci
     INPUT: none
@@ -128,29 +159,25 @@ def Info_ASPM(ser):
         atpos = data.find(str('@FW'))
         if (atpos >= 0):
             version = data[atpos+3:]
-            print("ArduSiPM Firmware Version:", end='')
-            print(version)
+            out_ins(f"ArduSiPM Firmware Version: {version}")
             ser.write('S\n\r'.encode())
         SNpos = data.find(str('@SN'))
         if (SNpos >= 0):
             SN = data[SNpos+3:]
-            print("Serial Number:", end='')
-            print(SN)
+            out_ins(f"Serial Number: {SN}")
             ser.write('H\n\r'.encode())
         Hpos = data.find(str('@HV'))
         if (Hpos >= 0):
             HVCODE = data[Hpos+3:]
-            print("HVCODE:", end='')
-            print(HVCODE)
+            out_ins(f"HVCODE: {HVCODE}")
 
             ser.write('I\n\r'.encode())
 
         Ipos = data.find(str('@I'))
         if (Ipos >= 0):
             Ident = data[Ipos+3:]
-            print("ID:", end='')
-            print(Ident)
-            print("Programming string: ^"+SN+"%"+HVCODE)
+            out_ins(f"ID: {Ident}")
+            out_ins(f"Programming string: ^{SN}%{HVCODE}")
             norisposta = False
         if ((time.time()-start) > 10):
             norisposta = False
@@ -186,23 +213,24 @@ def Search_ASPM():
 
 
 def Apri_Seriale():
+    global ser
     ser = serial.Serial()
     ser.baudrate = 115200
     ser.timeout = None
     ser_num = Search_ASPM()
-    if (ser_num):
+    if ser_num:
         ser.port = ser_num
         ser.open()
         time.sleep(1)
     else:
         # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
-        return (0)
-    return (ser)
+        return False
+    return ser
 
 
-def Scrivi_Seriale(comando, ser):
-    if (ser):
+def Scrivi_Seriale(comando):
+    if ser:
         ser.write(str('m').encode('utf-8'))
         time.sleep(2)
         ser.write(str(comando).encode('utf-8'))
@@ -213,8 +241,8 @@ def Scrivi_Seriale(comando, ser):
         time.sleep(0.5)
 
 
-def SetThreshold(threshold, ser):
-    if (ser):
+def SetThreshold(threshold):
+    if ser:
         ser.write(str('m').encode('utf-8'))
         time.sleep(2)
         ser.write(str('t').encode('utf-8'))
@@ -241,22 +269,30 @@ def Save_Data(data, file_name='my_data.csv'):
             file.write(',')
 
 
-def Acquire_ASPM(duration_acq, ser):
+def Acquire_ASPM(duration_acq):
     '''
     SCOPE:
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
-    global debug, prog_bar
+    global debug, prog_bar, start_acq_time, start_time_shown, stop_time_shown
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     lista = []
+    info_format()
     start_acq_time = datetime.now()
-    stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
+    stop_acq_time = start_acq_time + timedelta(seconds=duration_acq)   # -1??????
+    start_time_shown.set(f"Start time:   {start_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
+    stop_time_shown.set(f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     acq_time = datetime.now()
+
     while (acq_time < stop_acq_time):
-        prog_bar.step((10/(acq_time_tot*0.2)))
         acq_time = datetime.now()
+        time_pass_local = (str(acq_time-start_acq_time)).split(".")[0]
+        time_left_local = (str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
+        prog_bar.step((10/(acq_time_tot*0.2)))
+        time_pass.set(f"Time passed:   {time_pass_local}")
+        time_left.set(f"Time left:   - {time_left_local}")
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
 
@@ -281,20 +317,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     OUTPUT:
     '''
     global debug
-    # start_time = datetime.now()
-    # stopat = start_time+timedelta(seconds=duration_acq)
-    # serial connection
-    ser = serial.Serial()
-    ser.baudrate = 115200
-    ser.timeout = None  # try to solve delay
-    ser_num = Search_ASPM()
-    if (ser_num):
-        ser.port = ser_num
-        ser.open()
-        time.sleep(1)
-    else:
-        out_ins("ArduSiPM not found please connect")
-        return(0)
+    unpack()
+    if not Apri_Seriale(): return
     run_button.configure(state="disabled")
     paths_button.configure(state="disabled")
     acq_time_hours.configure(state="disabled")
@@ -302,32 +326,30 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     acq_time_seconds.configure(state="disabled")
     prog_bar.configure(mode="indeterminate")
     prog_bar.start()
-    start_time = datetime.now()
-    stopat = start_time+timedelta(seconds=duration_acq)
     # acquisition
     # ser.write(b'a') # enable ADC
     # ser.write(b'd') # enable TDC
     # ser.write(b'h75') # set HV
-    # Scrivi_Seriale(b's3', ser)
-    # Scrivi_Seriale(b'@', ser)
+    # Scrivi_Seriale(b's3')
+    # Scrivi_Seriale(b'@')
     # time.sleep(0.5)
     # ser.write(b'@')
     # time.sleep(0.5)
     ser.write(b'#')
     time.sleep(0.5)
-    SetThreshold(threshold, ser)
+    SetThreshold(threshold)
     ser.write(b'$')
     time.sleep(4)
     # ser.write(b'#') ## ADC+CPS
     ser.write(b'@')  # TDC+ADC+CPS
     time.sleep(0.5)
-    # print(f'Acquiring now... this run will stop at {stopat}')
-    out_ins(
-        f'starting time: {start_time} \n    Acquiring now... this run will stop at {stopat}')
-    data = Acquire_ASPM(duration_acq, ser)
+    out_ins(f'Acquiring now...')
+    # out_ins(
+    #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
+    data = Acquire_ASPM(duration_acq)
     # print('SAVING DATA...')
     out_ins('SAVING DATA...')
-    Save_Data(data, f"{start_time.strftime('%y%m%d%H%M%S')}_{file_par}.csv")
+    Save_Data(data, f"{start_acq_time.strftime(r'%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
     # print('Acquisition ended')
     prog_bar.stop()
@@ -376,14 +398,10 @@ can_run = True
 
 initial_text = '''
 
-    THIS IS ONLY A TEST PURPOSE TEXT. IT DOESN'T PROVIDE ANY USEFUL
-    INSTRUCTION FOR THE CORRECT USAGE OF THIS VERSION.
-
     ===========================
         WELCOME TO ArduSiPM   
     ===========================
     
-
     '''
 
 y_time = 500
@@ -410,7 +428,7 @@ min_y = int(min_x*root_y/root_x)
 
 root.title("ArduSipm - Reader")
 root.geometry(f"{root_x}x{root_y}-100-70")
-try: root.iconbitmap(icon_path)
+try: root.iconbitmap(icon_path, )
 except TclError: pass
 root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
@@ -418,9 +436,9 @@ root.minsize(width=min_x, height=min_y)
 
 # -------------------------------------------------------------
 # shown text
-# output_frame = Frame(root, width=100, height=100)
+info_frame = Frame(root)
 
-output = scrolledtext.ScrolledText(root, height=25, highlightthickness=0)
+output = scrolledtext.ScrolledText(info_frame, height=25, highlightthickness=0)
 out_ins(initial_text)
 
 # -------------------------------------------------------------
@@ -431,6 +449,8 @@ root.config(menu=menubar_1)
 
 file_menu = Menu(menubar_1, tearoff=0)
 menubar_1.add_cascade(label="File", menu=file_menu)
+file_menu.add_cascade(label="Info ArduSipm", command=Info_ASPM)
+file_menu.add_separator()
 file_menu.add_command(label="Exit", command=root.quit)
 
 # -------------------------------------------------------------
@@ -450,6 +470,7 @@ paths_button = Button(main_frame, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
 path_label = Label(footer_frame, textvariable=shown_path)
 
+
 h_label = Label(main_frame, text="hours")
 m_label = Label(main_frame, text="mins")
 s_label = Label(main_frame, text="secs")
@@ -458,7 +479,19 @@ tot_hours = StringVar()
 tot_mins = StringVar()
 tot_secs = StringVar()
 
-acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
+run_durat = StringVar()
+start_time_shown = StringVar()
+stop_time_shown = StringVar()
+time_pass = StringVar()
+time_left = StringVar()
+
+run_durat_label = Label(info_frame, textvariable=run_durat, font=("", 20))
+start_time_label = Label(info_frame, textvariable=start_time_shown, font=("", 20))
+stop_time_label = Label(info_frame, textvariable=stop_time_shown, font=("", 20))
+time_pass_label = Label(info_frame, textvariable=time_pass, font=("", 20))
+time_left_label = Label(info_frame, textvariable=time_left, font=("", 20))
+
+acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
 acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
                            from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins), "%P"))
@@ -483,7 +516,11 @@ prog_bar.pack()
 # --------------------------------------------------------------
 # packing everything
 
-output.pack(side="top", fill="x")
+output.pack(side="left", expand=True, fill="x")
+
+info_frame.pack(side="top", fill="x")
+
+ 
 
 main_frame.pack(pady=15)
 
