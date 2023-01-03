@@ -53,11 +53,9 @@ acq_time_tot = 0
 def sum_times():
     global tot_hours, tot_mins, tot_secs, acq_time_tot
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
-
     secs = int(secs) if secs != '' else 0
     mins = int(mins) if mins != '' else 0
     hours = int(hours) if hours != '' else 0
-
     tot = secs+60*mins+3600*hours
     acq_time_tot = tot
     return tot
@@ -69,28 +67,19 @@ def choose_path():
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
 
-    # tup = (path,)
-    # values = paths_cbox["values"]
-
-    # paths_cbox["values"] = values + tup
-
 def replace(widget, corner=False, which="both", positioning="prop"):
     global root_x, root_y
-
     w_x, w_y = widget.winfo_x(), widget.winfo_y()
     new_x, new_y = root.winfo_width(), root.winfo_height()
     x_ratio, y_ratio = new_x/root_x, new_y/root_y
-
     if w_x == 0 and w_y == 0 and not corner:
         return
     widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
 
 def replace_all():
     global replaceable_w, root_x, root_y
-
     for w in replaceable_w:
         replace(w)
-
     root_x, root_y = root.winfo_width(), root.winfo_height()
 
 def check_config():
@@ -433,12 +422,9 @@ acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=to
 
 footer_frame.pack(side="bottom", fill="x")
 
-run_thread = threading.Thread(target=launch_run, name="Run")
+run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
 run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
                 command=allow_run)
-run_thread = threading.Thread(target=launch_run, name="Run")
-run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
-                 command=allow_run)
 
 prog_frame = Frame(root)
 prog_bar = ttk.Progressbar(prog_frame, maximum=100,
