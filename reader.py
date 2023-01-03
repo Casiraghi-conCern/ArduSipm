@@ -48,8 +48,10 @@ def validate_secs(value):
             return True
     return False
 
+acq_time_tot = 0
+
 def sum_times():
-    global tot_hours, tot_mins, tot_secs
+    global tot_hours, tot_mins, tot_secs, acq_time_tot
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
 
     secs = int(secs) if secs != '' else 0
@@ -57,6 +59,7 @@ def sum_times():
     hours = int(hours) if hours != '' else 0
 
     tot = secs+60*mins+3600*hours
+    acq_time_tot = tot
     return tot
 
 def choose_path():
@@ -114,6 +117,25 @@ def allow_run():
 #     stop_threads.set()
 #     root.destroy()
 #     return
+
+def launch_run():
+     global can_run, stop_threads
+     while not stop_threads.is_set():
+         if can_run:
+             RunIt(sum_times())
+             can_run = False
+
+def allow_run():
+    global can_run
+    if not run_thread.is_alive():
+        run_thread.start()
+    can_run = True
+
+ # def stop_threads():
+ #     global stop_threads
+ #     stop_threads.set()
+ #     root.destroy()
+ #     return
 
 # -------------------------------------------------------------
 # reader functions
@@ -217,10 +239,6 @@ def Acquire_ASPM(duration_acq, ser):
     OUTPUT: a DataFraMe with the data
     '''
     global debug, prog_bar
-    # prog_bar.destroy()
-    # prog_bar = ttk.Progressbar(root, maximum=100,
-    #     length=500, variable=prog, mode="determinate")
-    # prog_bar.pack()
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     lista = []
@@ -228,7 +246,7 @@ def Acquire_ASPM(duration_acq, ser):
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
     acq_time = datetime.now()
     while (acq_time < stop_acq_time):
-        prog_bar.step((10/(sum_times()*0.2)))
+        prog_bar.step((10/(acq_time_tot*0.2)))
         acq_time = datetime.now()
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
@@ -243,7 +261,7 @@ def Acquire_ASPM(duration_acq, ser):
         lista.append(tdata)
         time.sleep(0.2)
 
-    return (lista)
+    return(lista)
 
 
 def RunIt(duration_acq=0, file_par='RawData', threshold=200):
@@ -268,6 +286,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     else:
         out_ins("ArduSiPM not found please connect")
         return(0)
+    prog_bar.configure(mode="indeterminate")
     prog_bar.start()
     start_time = datetime.now()
     stopat = start_time+timedelta(seconds=duration_acq)
@@ -332,6 +351,8 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 
 debug = False
 check_time = 100
+stop_threads = threading.Event()
+can_run = True
 stop_threads = threading.Event()
 can_run = True
 
@@ -431,10 +452,13 @@ footer_frame.pack(side="bottom", fill="x")
 run_thread = threading.Thread(target=launch_run, name="Run")
 run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
                 command=allow_run)
+run_thread = threading.Thread(target=launch_run, name="Run")
+run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
+                 command=allow_run)
 
 prog_frame = Frame(root)
 prog_bar = ttk.Progressbar(prog_frame, maximum=100,
-                           length=500, mode="indeterminate")
+                           length=500)
 
 # prog_label = Label(prog_frame, textvariable=prog)
 prog_frame.pack()
