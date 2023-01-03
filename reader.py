@@ -11,6 +11,14 @@ from tkinter import filedialog, scrolledtext, ttk
 import serial
 import serial.tools.list_ports
 
+initial_text = '''
+
+    ===========================
+        WELCOME TO ArduSiPM   
+    ===========================
+    
+    '''
+
 # -------------------------------------------------------------
 # GUI functions
 
@@ -124,6 +132,8 @@ def info_format():
     run_durat.set(f"Run time:   {result}")
 
 def unpack():
+    # output.insert(END, initial_text)
+
     run_durat_label.pack_forget()
     start_time_label.pack_forget()
     stop_time_label.pack_forget()
@@ -290,9 +300,9 @@ def Acquire_ASPM(duration_acq):
         acq_time = datetime.now()
         time_pass_local = (str(acq_time-start_acq_time)).split(".")[0]
         time_left_local = (str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
-        prog_bar.step((10/(acq_time_tot*0.2)))
         time_pass.set(f"Time passed:   {time_pass_local}")
         time_left.set(f"Time left:   - {time_left_local}")
+        prog_bar.step((10/(acq_time_tot*0.2)))
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
 
@@ -318,6 +328,9 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     '''
     global debug
     unpack()
+    if duration_acq == 0:
+        out_ins("Invalid time inserted: 00:00:00")
+        return
     if not Apri_Seriale(): return
     run_button.configure(state="disabled")
     paths_button.configure(state="disabled")
@@ -394,15 +407,6 @@ debug = False
 check_time = 100
 stop_threads = False
 can_run = True
-
-
-initial_text = '''
-
-    ===========================
-        WELCOME TO ArduSiPM   
-    ===========================
-    
-    '''
 
 y_time = 500
 x_time = 100
@@ -485,11 +489,12 @@ stop_time_shown = StringVar()
 time_pass = StringVar()
 time_left = StringVar()
 
-run_durat_label = Label(info_frame, textvariable=run_durat, font=("", 20))
-start_time_label = Label(info_frame, textvariable=start_time_shown, font=("", 20))
-stop_time_label = Label(info_frame, textvariable=stop_time_shown, font=("", 20))
-time_pass_label = Label(info_frame, textvariable=time_pass, font=("", 20))
-time_left_label = Label(info_frame, textvariable=time_left, font=("", 20))
+font_size = 18
+run_durat_label = Label(info_frame, textvariable=run_durat, font=("", font_size))
+start_time_label = Label(info_frame, textvariable=start_time_shown, font=("", font_size))
+stop_time_label = Label(info_frame, textvariable=stop_time_shown, font=("", font_size))
+time_pass_label = Label(info_frame, textvariable=time_pass, font=("", font_size))
+time_left_label = Label(info_frame, textvariable=time_left, font=("", font_size))
 
 acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
