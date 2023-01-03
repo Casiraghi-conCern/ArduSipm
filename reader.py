@@ -96,6 +96,25 @@ def check_config():
         replace_all()
     root.after(check_time, check_config)
 
+def launch_run():
+    global can_run, stop_threads
+    while not stop_threads.is_set():
+        if can_run:
+            RunIt(sum_times())
+            can_run = False
+
+def allow_run():
+    global can_run
+    if not run_thread.is_alive():
+        run_thread.start()
+    can_run = True
+
+# def stop_threads():
+#     global stop_threads
+#     stop_threads.set()
+#     root.destroy()
+#     return
+
 # -------------------------------------------------------------
 # reader functions
 
@@ -309,11 +328,12 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 # -------------------------------------------------------------------------------------
 # useful variables
 
-run_thread = threading.Thread(target=lambda: RunIt(sum_times()), name="Run")
 
 
 debug = False
 check_time = 100
+stop_threads = threading.Event()
+can_run = True
 
 initial_text = '''
 
@@ -408,7 +428,9 @@ acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=to
 
 footer_frame.pack(side="bottom", fill="x")
 
-run_button = Button(main_frame, text="Run", command=lambda: run_thread.start(), bg=f"{buttons_color}")
+run_thread = threading.Thread(target=launch_run, name="Run")
+run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
+                command=allow_run)
 
 prog = IntVar()
 
