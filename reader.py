@@ -61,11 +61,12 @@ def sum_times():
 
 def choose_path():
     global save_path, shown_path
-    path = filedialog.askdirectory()
-    save_path.set(path)
-    shown_path.set("Destination of the CSV files:           " + path)
+    path = filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
+    if path != '':
+        save_path.set(path)
+        shown_path.set("Destination of the CSV files:           " + path)
 
-    tup = (path,)
+    # tup = (path,)
     # values = paths_cbox["values"]
 
     # paths_cbox["values"] = values + tup
@@ -197,18 +198,17 @@ def Acquire_ASPM(duration_acq, ser):
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
-    global debug
-    # prog_bar.stop()
-    # prog_bar = ttk.Progressbar(root, maximum=100,
-    #     length=500, variable=prog, mode="determinate")
-    # prog_bar.pack()
-    # prog_bar.start()
+    global debug, prog_bar
+    prog_bar.destroy()
+    prog_bar = ttk.Progressbar(prog_bar_frame, maximum=100,
+        length=500, variable=prog, mode="determinate")
+    prog_bar.pack()
     lista = []
     start_acq_time = datetime.now()
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
     acq_time = datetime.now()
     while (acq_time < stop_acq_time):
-
+        prog_bar.step((10/(sum_times()*0.2)))
         acq_time = datetime.now()
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
@@ -309,7 +309,7 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 # -------------------------------------------------------------------------------------
 # useful variables
 
-run_thread = threading.Thread(target=lambda: RunIt(sum_times()))
+run_thread = threading.Thread(target=lambda: RunIt(sum_times()), name="Run")
 
 
 debug = False
@@ -412,8 +412,11 @@ run_button = Button(main_frame, text="Run", command=lambda: run_thread.start(), 
 
 prog = IntVar()
 
-prog_bar = ttk.Progressbar(root, maximum=100,
-                           length=500, variable=prog, mode="indeterminate")
+prog_bar_frame = Frame(root)
+
+prog_bar = ttk.Progressbar(prog_bar_frame, maximum=100,
+                           length=500, mode="indeterminate")
+prog_bar_frame.pack()
 prog_bar.pack()
 
 # --------------------------------------------------------------
