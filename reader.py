@@ -112,12 +112,6 @@ def allow_run():
         run_thread.start()
     can_run = True
 
-def update_progbar():
-    global prog_bar, acq_time_tot
-    if go_prog:
-        prog_bar.step(116/(acq_time_tot*1000))
-        root.after(1, update_progbar)
-
 # -------------------------------------------------------------
 # reader functions
 
@@ -219,17 +213,15 @@ def Acquire_ASPM(duration_acq, ser):
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
-    global debug, prog_bar, go_prog
+    global debug, prog_bar
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     lista = []
     start_acq_time = datetime.now()
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
     acq_time = datetime.now()
-    go_prog = True
-    root.after(0, update_progbar)
     while (acq_time < stop_acq_time):
-        # prog_bar.step((10/(acq_time_tot*0.2)))
+        prog_bar.step((10/(acq_time_tot*0.2)))
         acq_time = datetime.now()
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
@@ -243,7 +235,7 @@ def Acquire_ASPM(duration_acq, ser):
             out_ins(tdata)  # print(tdata)
         lista.append(tdata)
         time.sleep(0.2)
-    go_prog = False
+
     return(lista)
 
 
@@ -347,7 +339,6 @@ check_time = 100
 stop_threads = False
 can_run = True
 
-go_prog = False
 
 initial_text = '''
 
