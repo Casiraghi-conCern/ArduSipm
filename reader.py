@@ -150,8 +150,7 @@ def Search_ASPM():
             # print(f"Found ArduSiPM in port {serialport}")
             out_ins(f"Found ArduSiPM in port {serialport}")
             return (str(serialport))
-        else:
-            # print("no ArduSiPM, looking more...")
+        elif debug:
             out_ins("no ArduSiPM, looking more...")
 
 
@@ -218,10 +217,12 @@ def Acquire_ASPM(duration_acq, ser):
     OUTPUT: a DataFraMe with the data
     '''
     global debug, prog_bar
-    prog_bar.destroy()
-    prog_bar = ttk.Progressbar(prog_bar_frame, maximum=100,
-        length=500, variable=prog, mode="determinate")
-    prog_bar.pack()
+    # prog_bar.destroy()
+    # prog_bar = ttk.Progressbar(root, maximum=100,
+    #     length=500, variable=prog, mode="determinate")
+    # prog_bar.pack()
+    prog_bar.stop()
+    prog_bar.configure(mode="determinate")
     lista = []
     start_acq_time = datetime.now()
     stop_acq_time = start_acq_time + timedelta(seconds=duration_acq-1)
@@ -265,7 +266,6 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
         ser.open()
         time.sleep(1)
     else:
-        # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
         return(0)
     prog_bar.start()
@@ -432,14 +432,14 @@ run_thread = threading.Thread(target=launch_run, name="Run")
 run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
                 command=allow_run)
 
-prog = IntVar()
-
-prog_bar_frame = Frame(root)
-
-prog_bar = ttk.Progressbar(prog_bar_frame, maximum=100,
+prog_frame = Frame(root)
+prog_bar = ttk.Progressbar(prog_frame, maximum=100,
                            length=500, mode="indeterminate")
-prog_bar_frame.pack()
+
+# prog_label = Label(prog_frame, textvariable=prog)
+prog_frame.pack()
 prog_bar.pack()
+# prog_label.pack()
 
 # --------------------------------------------------------------
 # packing everything
