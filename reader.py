@@ -286,6 +286,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     else:
         out_ins("ArduSiPM not found please connect")
         return(0)
+    run_button.configure(state="disabled")
     prog_bar.configure(mode="indeterminate")
     prog_bar.start()
     start_time = datetime.now()
@@ -318,6 +319,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # print('Acquisition ended')
     prog_bar.stop()
     out_ins('Acquisition ended\n')
+    run_button.configure(state="normal")
     return data
 
 
@@ -353,8 +355,7 @@ debug = False
 check_time = 100
 stop_threads = threading.Event()
 can_run = True
-stop_threads = threading.Event()
-can_run = True
+
 
 initial_text = '''
 
