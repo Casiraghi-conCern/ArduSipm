@@ -105,13 +105,58 @@ def allow_run():
 # reader functions
 
 
-def Info_ASPM():
+def Info_ASPM(ser):
     '''
     SCOPE: call to the original info script from V.Bocci
     INPUT: none
     OUTPUT: print info on screen
     '''
-    sys.path.append('Valerio/')
+    if not Apri_Seriale():
+        return None
+
+    ser.reset_input_buffer()  # Flush all the previous data in Serial port
+    start = time.time()
+    time.sleep(3)
+    ser.write('F\n\r'.encode())
+
+    norisposta = True
+    while norisposta:
+        data = ser.readline().rstrip()
+        # print(data)
+        data = data.decode('utf-8')
+
+        atpos = data.find(str('@FW'))
+        if (atpos >= 0):
+            version = data[atpos+3:]
+            print("ArduSiPM Firmware Version:", end='')
+            print(version)
+            ser.write('S\n\r'.encode())
+        SNpos = data.find(str('@SN'))
+        if (SNpos >= 0):
+            SN = data[SNpos+3:]
+            print("Serial Number:", end='')
+            print(SN)
+            ser.write('H\n\r'.encode())
+        Hpos = data.find(str('@HV'))
+        if (Hpos >= 0):
+            HVCODE = data[Hpos+3:]
+            print("HVCODE:", end='')
+            print(HVCODE)
+
+            ser.write('I\n\r'.encode())
+
+        Ipos = data.find(str('@I'))
+        if (Ipos >= 0):
+            Ident = data[Ipos+3:]
+            print("ID:", end='')
+            print(Ident)
+            print("Programming string: ^"+SN+"%"+HVCODE)
+            norisposta = False
+        if ((time.time()-start) > 10):
+            norisposta = False
+
+    ser.close()
+    return True
 
 
 def Search_ASPM():
