@@ -303,7 +303,7 @@ def Acquire_ASPM(duration_acq):
         time_left_local = (str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
         time_pass.set(f"Time passed:   {time_pass_local}")
         time_left.set(f"Time left:   - {time_left_local}")
-        prog_bar.step(prog_bar["maximum"]/(acq_time_tot*2))
+        prog_bar.step(prog_bar["maximum"]/(acq_time_tot*2.25))
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
 
@@ -316,7 +316,7 @@ def Acquire_ASPM(duration_acq):
             out_ins(tdata)  # print(tdata)
         lista.append(tdata)
         time.sleep(0.2)
-
+    prog_bar["maximum"] = 100
     return(lista)
 
 
