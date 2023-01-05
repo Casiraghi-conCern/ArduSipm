@@ -157,7 +157,7 @@ def Info_ASPM():
 
     ser.reset_input_buffer()  # Flush all the previous data in Serial port
     start = time.time()
-    #time.sleep(3)
+    time.sleep(3)
     ser.write('F\n\r'.encode())
 
     norisposta = True
@@ -231,7 +231,7 @@ def Apri_Seriale():
     if ser_num:
         ser.port = ser_num
         ser.open()
-        #time.sleep(1)
+        time.sleep(1)
     else:
         # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
@@ -242,27 +242,27 @@ def Apri_Seriale():
 def Scrivi_Seriale(comando):
     if ser:
         ser.write(str('m').encode('utf-8'))
-        #time.sleep(2)
+        time.sleep(2)
         ser.write(str(comando).encode('utf-8'))
-        #time.sleep(2)
+        time.sleep(2)
         ser.write(str('e').encode('utf-8'))
         # print(f'wrote on serial {comando}')
         out_ins(f'wrote on serial {comando}')
-        #time.sleep(0.5)
+        time.sleep(0.5)
 
 
 def SetThreshold(threshold):
     if ser:
         ser.write(str('m').encode('utf-8'))
-        #time.sleep(2)
+        time.sleep(2)
         ser.write(str('t').encode('utf-8'))
-        #time.sleep(2)
+        time.sleep(2)
         # ser.write(threshold.to_bytes(4, 'little'))
         # ser.write(b'10')
         ser.write(str(threshold).encode('utf-8'))
-        #time.sleep(4)
+        time.sleep(4)
         ser.write(str('e').encode('utf-8'))
-        #time.sleep(2)
+        time.sleep(2)
 
 
 def Save_Data(data, file_name='my_data.csv'):
@@ -346,17 +346,17 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # ser.write(b'h75') # set HV
     # Scrivi_Seriale(b's3')
     # Scrivi_Seriale(b'@')
-    # #time.sleep(0.5)
+    # time.sleep(0.5)
     # ser.write(b'@')
-    # #time.sleep(0.5)
+    # time.sleep(0.5)
     ser.write(b'#')
-    #time.sleep(0.5)
+    time.sleep(0.5)
     SetThreshold(threshold)
     ser.write(b'$')
-    #time.sleep(4)
+    time.sleep(4)
     # ser.write(b'#') ## ADC+CPS
     ser.write(b'@')  # TDC+ADC+CPS
-    #time.sleep(0.5)
+    time.sleep(0.5)
     out_ins(f'Acquiring now...')
     # out_ins(
     #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
@@ -392,7 +392,7 @@ def ScanThreshold(duration_acq=3600, prefix=None):
     for t in range(10, 255, step):
         # print(f'I will now run threshold {t} (range 10-255, steps {step})')
         out_ins(f'I will now run threshold {t} (range 10-255, steps {step})')
-        #time.sleep(10)
+        time.sleep(10)
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
         RunIt(duration_acq=duration_acq,
               file_par=nomeFile, threshold=t, debug=debug)
