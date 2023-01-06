@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import multiprocessing
 import os
 import sys
 import threading
@@ -16,20 +17,22 @@ initial_text = '''
     ===========================
         WELCOME TO ArduSiPM   
     ===========================
-    
-    '''
+
+'''
 
 # -------------------------------------------------------------
 # GUI functions
 
-def out_ins(text):
-    global output
+def out_ins(text, end='\n\n') -> None:
+    '''Prints the argument in the Output Scrolled Text '''
     output.config(state="normal")
-    output.insert("end", f"\n   {text}")
+    output.insert("end", f"   {text}{end}")
     output.see(END)
     output.config(state="disabled")
 
-def validate_digit(value, type):
+def validate_digit(value, type) -> bool:
+    '''Validates every character the user puts in hours, mins and secs
+    returns True if the value is accepted'''
     if value.isdigit(): 
         value = int(value)
     elif value=='':
@@ -43,7 +46,9 @@ def validate_digit(value, type):
         return True
     return False
 
-def sum_times():
+def sum_times() -> int:
+    '''Calculates the sum of hours, mins and secs
+    returns the value in seconds(int)'''
     global tot_hours, tot_mins, tot_secs, acq_time_tot
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
     secs = int(secs) if secs != '' else 0
@@ -53,14 +58,16 @@ def sum_times():
     acq_time_tot = tot
     return tot
 
-def choose_path():
+def choose_path() -> None:
+    '''Asks the user for a directory where to store csv files'''
     global save_path, shown_path
     path = filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
     if path != '':
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
 
-def replace(widget, corner=False):
+def replace(widget, corner=False) -> None:
+    '''Replaces the widget passed to fit in the screen'''
     global root_x, root_y
     w_x, w_y = widget.winfo_x(), widget.winfo_y()
     new_x, new_y = root.winfo_width(), root.winfo_height()
@@ -69,30 +76,37 @@ def replace(widget, corner=False):
         return
     widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
 
-def check_config():
+def check_config() -> None:
+    '''Recursive function that calls itself to check and replace the widgets 
+    in the replaceable list'''
     global check_time, root_x, root_y
     if not (root_x == root.winfo_width() and root_y == root.winfo_height()):
-        for w in replaceable_w:
+        for w in replaceable:
             replace(w)
         root_x, root_y = root.winfo_width(), root.winfo_height()
     root.after(check_time, check_config)
 
-def launch_run():
-    '''Checks if the Run Thread can start starts it'''
-    global can_run, stop_threads
+def launch_run() -> None:
+    '''Checks if the Run Thread can run and calls RunIt '''
+    global can_run
     while not stop_threads:
         if can_run:
             RunIt(sum_times())
             can_run = False
 
-def allow_run():
+def allow_run() -> None:
     '''Checks whether the Run Thread is alive and if not starts it'''
     global can_run
     if not run_thread.is_alive():
         run_thread.start()
     can_run = True
 
-def info_format():
+# def terminate_process() -> None:
+#     '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
+#     global run_process
+#     run_process.terminate()
+
+def info_format() -> None:
     '''Makes the info about the time appear at the right of the screen'''
     global run_durat
     s_hours, s_mins, s_secs = 0, 0, 0
@@ -115,9 +129,15 @@ def info_format():
     result=result[:(len(result)-1)]
     run_durat.set(f"Run time:   {result}")
 
-def unpack():
-    # output.insert(END, initial_text)
-
+def unpack() -> None:
+    ''''''
+    # clear before new session
+    output.config(state="normal")
+    output.delete('1.0', END)
+    output.insert(END, initial_text)
+    output.see(END)
+    output.config(state="disabled")
+    
     run_durat_label.pack_forget()
     start_time_label.pack_forget()
     stop_time_label.pack_forget()
@@ -367,11 +387,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
 
 
 def RunLoop(duration_acq, nLoops, file_par, threshold=200):
-    # print(f'Start running {nLoops} loops of {duration_acq} sec each')
-    # print()
     out_ins(f'Start running {nLoops} loops of {duration_acq} sec each\n')
     for i in range(nLoops+1):
-        # print(f'Run now loop n. {i} of {nLoops}')
         out_ins(f'Run now loop n. {i} of {nLoops}')
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
 
@@ -488,7 +505,7 @@ stop_time_label = Label(info_frame, textvariable=stop_time_shown, font=("", font
 time_pass_label = Label(info_frame, textvariable=time_pass, font=("", font_size))
 time_left_label = Label(info_frame, textvariable=time_left, font=("", font_size))
 
-acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
+acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_digit), "%P", "hours"))
 acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
                            from_=0, to=59, validate="all", validatecommand=(root.register(validate_digit), "%P", "mins"))
@@ -498,8 +515,12 @@ acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=to
 footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
-run_button = Button(main_frame, text="Run", bg=f"{buttons_color}",
-                command=allow_run)
+
+# run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
+
+run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
+
+stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=None, state="disabled")
 
 prog_frame = Frame(root)
 prog_bar = ttk.Progressbar(prog_frame, maximum=100,
@@ -532,12 +553,14 @@ s_label.pack(side="left")
 
 run_button.pack(side="left", padx=10)
 
-paths_button.pack(side="left")
+stop_button.pack(side="left")
+
+paths_button.pack(side="left", padx=10)
 path_label.pack(side='bottom', anchor="se", padx=10)
 
 # --------------------------------------------------------------
+replaceable = []
 
-replaceable_w = []
 root.mainloop()
 
 stop_threads = True
