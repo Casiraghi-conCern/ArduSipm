@@ -43,8 +43,6 @@ def validate_digit(value, type):
         return True
     return False
 
-acq_time_tot = 0
-
 def sum_times():
     global tot_hours, tot_mins, tot_secs, acq_time_tot
     secs, mins, hours = tot_secs.get(), tot_mins.get(), tot_hours.get()
@@ -298,12 +296,12 @@ def Acquire_ASPM(duration_acq):
 
         data = ser.readline().rstrip()
         tdata = f"u{acq_time.strftime('%y%m%d%H%M%S.%f')}{data.decode('ascii')}"
-        if (debug):
+        if debug:
             out_ins(tdata)  # print(tdata)
         lista.append(tdata)
         time.sleep(0.2)
     prog_bar["maximum"] = 100
-    return(lista)
+    return lista
 
 
 def RunIt(duration_acq=0, file_par='RawData', threshold=200):
@@ -394,6 +392,7 @@ debug = False
 check_time = 100
 stop_threads = False
 can_run = True
+acq_time_tot = 0
 
 y_time = 500
 x_time = 100
@@ -531,9 +530,8 @@ paths_button.pack(side="left")
 path_label.pack(side='bottom', anchor="se", padx=10)
 
 # --------------------------------------------------------------
+
 replaceable_w = []
-replaceable_w_x = []
-replaceable_w_y = []
 root.mainloop()
 
 stop_threads = True
