@@ -161,7 +161,7 @@ def Info_ASPM():
 
     ser.reset_input_buffer()  # Flush all the previous data in Serial port
     start = time.time()
-    time.sleep(3)
+    time.sleep(delay_var.get() * 3)
     ser.write('F\n\r'.encode())
 
     norisposta = True
@@ -235,7 +235,7 @@ def Apri_Seriale():
     if ser_num:
         ser.port = ser_num
         ser.open()
-        time.sleep(1)
+        time.sleep(delay_var.get() * 1)
     else:
         # print('ArduSiPM not found please connect')
         out_ins("ArduSiPM not found please connect")
@@ -246,27 +246,27 @@ def Apri_Seriale():
 def Scrivi_Seriale(comando):
     if ser:
         ser.write(str('m').encode('utf-8'))
-        time.sleep(2)
+        time.sleep(delay_var.get() * 2)
         ser.write(str(comando).encode('utf-8'))
-        time.sleep(2)
+        time.sleep(delay_var.get() * 2)
         ser.write(str('e').encode('utf-8'))
         # print(f'wrote on serial {comando}')
         out_ins(f'wrote on serial {comando}')
-        time.sleep(0.5)
+        time.sleep(delay_var.get() * 0.5)
 
 
 def SetThreshold(threshold):
     if ser:
         ser.write(str('m').encode('utf-8'))
-        time.sleep(2)
+        time.sleep(delay_var.get() * 2)
         ser.write(str('t').encode('utf-8'))
-        time.sleep(2)
+        time.sleep(delay_var.get() * 2)
         # ser.write(threshold.to_bytes(4, 'little'))
         # ser.write(b'10')
         ser.write(str(threshold).encode('utf-8'))
-        time.sleep(4)
+        time.sleep(delay_var.get() * 4)
         ser.write(str('e').encode('utf-8'))
-        time.sleep(2)
+        time.sleep(delay_var.get() * 2)
 
 
 def Save_Data(data, file_name='my_data.csv'):
@@ -341,6 +341,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     unpack()
     if duration_acq == 0:
         out_ins("Invalid time inserted: 00:00:00")
+        root.bell()
         return
     if not Apri_Seriale(): return
     run_button.configure(state="disabled")
@@ -356,17 +357,17 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # ser.write(b'h75') # set HV
     # Scrivi_Seriale(b's3')
     # Scrivi_Seriale(b'@')
-    # time.sleep(0.5)
+    # time.sleep(delay_var.get() * 0.5)
     # ser.write(b'@')
-    # time.sleep(0.5)
+    # time.sleep(delay_var.get() * 0.5)
     ser.write(b'#')
-    time.sleep(0.5)
+    time.sleep(delay_var.get() * 0.5)
     SetThreshold(threshold)
     ser.write(b'$')
-    time.sleep(4)
+    time.sleep(delay_var.get() * 4)
     # ser.write(b'#') ## ADC+CPS
     ser.write(b'@')  # TDC+ADC+CPS
-    time.sleep(0.5)
+    time.sleep(delay_var.get() * 0.5)
     out_ins(f'Acquiring now...')
     # out_ins(
     #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
@@ -378,6 +379,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # print('Acquisition ended')
     prog_bar.stop()
     out_ins('Acquisition ended\n')
+    root.bell()
     run_button.configure(state="normal")
     paths_button.configure(state="normal")
     acq_time_hours.configure(state="normal")
@@ -399,7 +401,7 @@ def ScanThreshold(duration_acq=3600, prefix=None):
     for t in range(10, 255, step):
         # print(f'I will now run threshold {t} (range 10-255, steps {step})')
         out_ins(f'I will now run threshold {t} (range 10-255, steps {step})')
-        time.sleep(10)
+        time.sleep(delay_var.get() * 10)
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
         RunIt(duration_acq=duration_acq,
               file_par=nomeFile, threshold=t, debug=debug)
@@ -551,11 +553,16 @@ m_label.pack(side="left")
 acq_time_seconds.pack(side="left")
 s_label.pack(side="left")
 
-run_button.pack(side="left", padx=10)
+run_button.pack(side="left", padx=5)
 
-stop_button.pack(side="left")
+stop_button.pack(side="left", padx=5)
 
-paths_button.pack(side="left", padx=10)
+paths_button.pack(side="left", padx=5)
+
+delay_var = IntVar(value=0)
+delay_checkb = Checkbutton(main_frame, variable=delay_var, offvalue=1, onvalue=0, text="remove delay")
+delay_checkb.pack(side="left", padx=5)
+
 path_label.pack(side='bottom', anchor="se", padx=10)
 
 # --------------------------------------------------------------
