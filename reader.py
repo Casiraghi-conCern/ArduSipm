@@ -173,7 +173,7 @@ def Info_ASPM():
             out_ins(f"ID: {Ident}")
             out_ins(f"Programming string: ^{SN}%{HVCODE}")
             norisposta = False
-        if (time.time()-start) > 10:
+        if time.time()-start > 10:
             norisposta = False
 
     ser.close()
