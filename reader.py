@@ -151,29 +151,29 @@ def Info_ASPM():
         data = data.decode('utf-8')
 
         atpos = data.find(str('@FW'))
-        if (atpos >= 0):
+        if atpos >= 0:
             version = data[atpos+3:]
             out_ins(f"ArduSiPM Firmware Version: {version}")
             ser.write('S\n\r'.encode())
         SNpos = data.find(str('@SN'))
-        if (SNpos >= 0):
+        if SNpos >= 0:
             SN = data[SNpos+3:]
             out_ins(f"Serial Number: {SN}")
             ser.write('H\n\r'.encode())
         Hpos = data.find(str('@HV'))
-        if (Hpos >= 0):
+        if Hpos >= 0:
             HVCODE = data[Hpos+3:]
             out_ins(f"HVCODE: {HVCODE}")
 
             ser.write('I\n\r'.encode())
 
         Ipos = data.find(str('@I'))
-        if (Ipos >= 0):
+        if Ipos >= 0:
             Ident = data[Ipos+3:]
             out_ins(f"ID: {Ident}")
             out_ins(f"Programming string: ^{SN}%{HVCODE}")
             norisposta = False
-        if ((time.time()-start) > 10):
+        if (time.time()-start) > 10:
             norisposta = False
 
     ser.close()
@@ -189,14 +189,14 @@ def Search_ASPM():
     '''
     global debug
     # Scan Serial ports and found ArduSiPM
-    if (debug):
+    if debug:
         out_ins("Serial ports available:")  # print('Serial ports available:')
     ports = list(serial.tools.list_ports.comports())
     for i in range(len(ports)):
-        if (debug):
+        if debug:
             out_ins(ports[i])  # print(ports[i])
         pippo = str(ports[i])
-        if (pippo.find('Arduino') > 0) or (pippo.find('cu.usbmodem') > 0):
+        if pippo.find('Arduino') > 0 or pippo.find('cu.usbmodem') > 0:
             # TODO: ? solve the com> com9 problem Francesco
             serialport = pippo.split(" ")[0]
             # print(f"Found ArduSiPM in port {serialport}")
