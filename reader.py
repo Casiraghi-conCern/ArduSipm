@@ -29,31 +29,18 @@ def out_ins(text):
     output.see(END)
     output.config(state="disabled")
 
-def validate_hours(value):
-    if value == '':
-        return True
-    elif value.isdigit() and len(str(value)) <= 3:
+def validate_digit(value, type):
+    if value.isdigit(): 
         value = int(value)
-        if 0 <= value < 1000:
-            return True
-    return False
+    elif value=='':
+        return True
+    else: 
+        return False
 
-def validate_mins(value):
-    if value == '':
+    if 0<=value<1000 and len(str(value)) <= 3 and type=="hours":
         return True
-    elif value.isdigit() and len(str(value)) <= 2:
-        value = int(value)
-        if 0 <= value < 60:
-            return True
-    return False
-
-def validate_secs(value):
-    if value == '':
+    elif 0<=value<60 and len(str(value)) <= 2 and (type=="mins" or type=="secs"):
         return True
-    elif value.isdigit() and len(str(value)) <= 2:
-        value = int(value)
-        if 0 <= value < 60:
-            return True
     return False
 
 acq_time_tot = 0
@@ -75,7 +62,7 @@ def choose_path():
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
 
-def replace(widget, corner=False, which="both", positioning="prop"):
+def replace(widget, corner=False):
     global root_x, root_y
     w_x, w_y = widget.winfo_x(), widget.winfo_y()
     new_x, new_y = root.winfo_width(), root.winfo_height()
@@ -84,19 +71,16 @@ def replace(widget, corner=False, which="both", positioning="prop"):
         return
     widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
 
-def replace_all():
-    global replaceable_w, root_x, root_y
-    for w in replaceable_w:
-        replace(w)
-    root_x, root_y = root.winfo_width(), root.winfo_height()
-
 def check_config():
-    global check_time
+    global check_time, root_x, root_y
     if not (root_x == root.winfo_width() and root_y == root.winfo_height()):
-        replace_all()
+        for w in replaceable_w:
+            replace(w)
+        root_x, root_y = root.winfo_width(), root.winfo_height()
     root.after(check_time, check_config)
 
 def launch_run():
+    '''Checks if the Run Thread can start starts it'''
     global can_run, stop_threads
     while not stop_threads:
         if can_run:
@@ -104,12 +88,14 @@ def launch_run():
             can_run = False
 
 def allow_run():
+    '''Checks whether the Run Thread is alive and if not starts it'''
     global can_run
     if not run_thread.is_alive():
         run_thread.start()
     can_run = True
 
 def info_format():
+    '''Makes the info about the time appear at the right of the screen'''
     global run_durat
     s_hours, s_mins, s_secs = 0, 0, 0
     result = ""
@@ -498,11 +484,11 @@ time_pass_label = Label(info_frame, textvariable=time_pass, font=("", font_size)
 time_left_label = Label(info_frame, textvariable=time_left, font=("", font_size))
 
 acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours, 
-                         from_=0, to=999, validate="all", validatecommand=(root.register(validate_hours), "%P"))
+                         from_=0, to=999, validate="all", validatecommand=(root.register(validate_digit), "%P", "hours"))
 acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
-                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_mins), "%P"))
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_digit), "%P", "mins"))
 acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
-                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_secs), "%P"))
+                           from_=0, to=59, validate="all", validatecommand=(root.register(validate_digit), "%P", "secs"))
 
 footer_frame.pack(side="bottom", fill="x")
 
