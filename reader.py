@@ -154,6 +154,10 @@ def custom_sound(file_name) -> None:
     elif sys.platform == "darwin":
         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
 
+def stop_run() -> None:
+    '''Stops the current run and saves data'''
+    global stop_run_var
+    stop_run_var = True
 
 # -------------------------------------------------------------
 # reader functions
@@ -311,7 +315,7 @@ def Acquire_ASPM(duration_acq):
     stop_time_shown.set(f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     acq_time = datetime.now()
 
-    while (acq_time < stop_acq_time):
+    while acq_time < stop_acq_time and not stop_run_var:
         acq_time = datetime.now()
         time_pass_local = (str(acq_time-start_acq_time)).split(".")[0]
         time_left_local = (str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
@@ -383,6 +387,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
     data = Acquire_ASPM(duration_acq)
     out_ins('SAVING DATA...')
+    stop_run_var = False
     Save_Data(data, f"{start_acq_time.strftime(r'%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
     prog_bar.stop()
@@ -426,6 +431,7 @@ debug = False
 check_time = 100
 stop_threads = False
 can_run = True
+stop_run_var = False
 acq_time_tot = 0
 
 y_time = 500
@@ -531,7 +537,7 @@ run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
 
 run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
 
-stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=None, state="normal")
+stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=stop_run, state="disabled")
 
 prog_frame = Frame(root)
 prog_bar = ttk.Progressbar(prog_frame, maximum=100,
