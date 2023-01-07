@@ -153,6 +153,18 @@ def custom_sound(file_name) -> None:
         winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
     elif sys.platform == "darwin":
         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
+def progressbar_step() -> None:
+    step_time = 0.05
+    n_step = acq_time_tot/step_time
+    step = prog_bar["maximum"]/n_step
+    
+    # if progress.get() <= prog_bar["maximum"]:
+    #     prog_bar.step(step)
+    #     root.after(step_time, progressbar_step())
+
+    for i in range(int(n_step)):
+        prog_bar.step(step)
+        time.sleep(step_time)
 
 def stop_run() -> None:
     '''Stops the current run and saves data'''
@@ -304,9 +316,11 @@ def Acquire_ASPM(duration_acq):
     global debug, prog_bar, start_acq_time, start_time_shown, stop_time_shown
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
-    prog_bar["maximum"] = 1000
-    prog_bar_progress = 0
-    step = prog_bar["maximum"]/(acq_time_tot*2.25)
+    prog_bar.step(-1.0)
+    # prog_bar_progress = 0
+    # nloops = acq_time_tot/0.2   #numero cicli = tempo tot / tempo per un giro
+    # step = prog_bar["maximum"]/nloops   #incremento di ogni giro = massimo della barra / numero di giri
+    prog_bar.after(0, progressbar_step())
     lista = []
     info_format()
     start_acq_time = datetime.now()
@@ -323,22 +337,19 @@ def Acquire_ASPM(duration_acq):
         time_left.set(f"Time left:   - {time_left_local}")
         # print(acq_time.strftime('%H:%M:%S'))
         ser.reset_input_buffer()  # Flush all the previous data in Serial port
-
-        # data = ser.read_until(r'\n')
-        # print(data)
-
         data = ser.readline().rstrip()
         tdata = f"u{acq_time.strftime('%y%m%d%H%M%S.%f')}{data.decode('ascii')}"
         if debug:
             out_ins(tdata)
         lista.append(tdata)
         time.sleep(0.2)
-        prog_bar_progress += step
-        if prog_bar_progress <= prog_bar["maximum"]:
-            prog_bar.step(step)
-        else:
-            prog_bar.step(prog_bar["maximum"]-(prog_bar_progress-(step-0.01)))
-    prog_bar["maximum"] = 100
+        # prog_bar.step(step)    
+    #     prog_bar_progress += step
+    #     if prog_bar_progress <= prog_bar["maximum"]:
+    #         prog_bar.step(step)
+    #     else:
+    #         prog_bar.step(prog_bar["maximum"]-(prog_bar_progress-(step-0.01)))
+    # prog_bar["maximum"] = 100
     return lista
 
 
@@ -540,9 +551,10 @@ run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
 stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=stop_run, state="disabled")
 
 prog_frame = Frame(root)
-prog_bar = ttk.Progressbar(prog_frame, maximum=100,
-                           length=500)
-
+progress = DoubleVar()
+prog_bar = ttk.Progressbar(prog_frame, maximum=100, length=500, variable=progress)
+prog_label = Label(prog_frame, textvariable=progress)
+prog_label.pack(side="right")
 # prog_label = Label(prog_frame, textvariable=prog)
 prog_frame.pack()
 prog_bar.pack()
