@@ -103,10 +103,10 @@ def allow_run() -> None:
         run_thread.start()
     can_run = True
 
-def terminate_process() -> None:
-    '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
-    global run_process
-    run_process.terminate()
+# def terminate_process() -> None:
+#     '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
+#     global run_process
+#     run_process.terminate()
 
 def info_format() -> None:
     '''Makes the info about the time appear at the right of the screen'''
@@ -386,7 +386,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     ser.close()
     prog_bar.stop()
     out_ins('Acquisition ended\n')
-    root.bell()
+    # root.bell()
+    custom_sound("sas.wav")
     run_button.configure(state="normal")
     paths_button.configure(state="normal")
     acq_time_hours.configure(state="normal")
@@ -524,7 +525,7 @@ footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
 
-run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
+# run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
 
 run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
 
