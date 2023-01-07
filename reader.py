@@ -354,6 +354,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
         return
     if not Apri_Seriale(): return
     run_button.configure(state="disabled")
+    stop_button.configure(state="normal")
     paths_button.configure(state="disabled")
     acq_time_hours.configure(state="disabled")
     acq_time_minutes.configure(state="disabled")
@@ -389,6 +390,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # root.bell()
     custom_sound("sas.wav")
     run_button.configure(state="normal")
+    stop_button.configure(state="disabled")
     paths_button.configure(state="normal")
     acq_time_hours.configure(state="normal")
     acq_time_minutes.configure(state="normal")
