@@ -349,7 +349,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     INPUT:
     OUTPUT:
     '''
-    global debug
+    global debug, stop_run_var
     unpack()
     if duration_acq == 0:
         # root.bell()
