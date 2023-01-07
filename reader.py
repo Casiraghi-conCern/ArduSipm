@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import multiprocessing
+import subprocess
+import winsound
 import os
 import sys
 import threading
@@ -101,10 +103,10 @@ def allow_run() -> None:
         run_thread.start()
     can_run = True
 
-# def terminate_process() -> None:
-#     '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
-#     global run_process
-#     run_process.terminate()
+def terminate_process() -> None:
+    '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
+    global run_process
+    run_process.terminate()
 
 def info_format() -> None:
     '''Makes the info about the time appear at the right of the screen'''
@@ -144,7 +146,14 @@ def unpack() -> None:
     time_pass_label.pack_forget()
     time_left_label.pack_forget()
 
-    
+def custom_sound(file_name) -> None:
+    # executes the audio file inserted
+    global current_dir
+    if sys.platform == "win32":
+        winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
+    elif sys.platform == "darwin":
+        subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
+
 
 # -------------------------------------------------------------
 # reader functions
@@ -210,16 +219,15 @@ def Search_ASPM():
     global debug
     # Scan Serial ports and found ArduSiPM
     if debug:
-        out_ins("Serial ports available:")  # print('Serial ports available:')
+        out_ins("Serial ports available:")  
     ports = list(serial.tools.list_ports.comports())
     for i in range(len(ports)):
         if debug:
-            out_ins(ports[i])  # print(ports[i])
+            out_ins(ports[i])
         pippo = str(ports[i])
         if pippo.find('Arduino') > 0 or pippo.find('cu.usbmodem') > 0:
             # TODO: ? solve the com> com9 problem Francesco
             serialport = pippo.split(" ")[0]
-            # print(f"Found ArduSiPM in port {serialport}")
             out_ins(f"Found ArduSiPM in port {serialport}")
             return (str(serialport))
         elif debug:
@@ -237,7 +245,8 @@ def Apri_Seriale():
         ser.open()
         time.sleep(delay_var.get() * 1)
     else:
-        # print('ArduSiPM not found please connect')
+        #root.bell()
+        custom_sound("sas.wav")
         out_ins("ArduSiPM not found please connect")
         return False
     return ser
@@ -250,7 +259,6 @@ def Scrivi_Seriale(comando):
         ser.write(str(comando).encode('utf-8'))
         time.sleep(delay_var.get() * 2)
         ser.write(str('e').encode('utf-8'))
-        # print(f'wrote on serial {comando}')
         out_ins(f'wrote on serial {comando}')
         time.sleep(delay_var.get() * 0.5)
 
@@ -318,7 +326,7 @@ def Acquire_ASPM(duration_acq):
         data = ser.readline().rstrip()
         tdata = f"u{acq_time.strftime('%y%m%d%H%M%S.%f')}{data.decode('ascii')}"
         if debug:
-            out_ins(tdata)  # print(tdata)
+            out_ins(tdata)
         lista.append(tdata)
         time.sleep(0.2)
         prog_bar_progress += step
@@ -340,8 +348,9 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     global debug
     unpack()
     if duration_acq == 0:
+        # root.bell()
+        custom_sound("sas.wav")
         out_ins("Invalid time inserted: 00:00:00")
-        root.bell()
         return
     if not Apri_Seriale(): return
     run_button.configure(state="disabled")
@@ -372,11 +381,9 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # out_ins(
     #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
     data = Acquire_ASPM(duration_acq)
-    # print('SAVING DATA...')
     out_ins('SAVING DATA...')
     Save_Data(data, f"{start_acq_time.strftime(r'%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
-    # print('Acquisition ended')
     prog_bar.stop()
     out_ins('Acquisition ended\n')
     root.bell()
@@ -399,7 +406,6 @@ def ScanThreshold(duration_acq=3600, prefix=None):
     global debug
     step = 20
     for t in range(10, 255, step):
-        # print(f'I will now run threshold {t} (range 10-255, steps {step})')
         out_ins(f'I will now run threshold {t} (range 10-255, steps {step})')
         time.sleep(delay_var.get() * 10)
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
@@ -518,11 +524,11 @@ footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
 
-# run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
+run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
 
 run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
 
-stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=None, state="disabled")
+stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=None, state="normal")
 
 prog_frame = Frame(root)
 prog_bar = ttk.Progressbar(prog_frame, maximum=100,
