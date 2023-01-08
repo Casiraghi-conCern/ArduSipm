@@ -153,6 +153,7 @@ def custom_sound(file_name) -> None:
         winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
     elif sys.platform == "darwin":
         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
+
 def progressbar_step() -> None:
     step_time = 0.05
     n_step = acq_time_tot/step_time
@@ -313,7 +314,7 @@ def Acquire_ASPM(duration_acq):
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
-    global debug, prog_bar, start_acq_time, start_time_shown, stop_time_shown
+    global debug, prog_bar, start_acq_time, start_time_shown, stop_time_shown, stop_button
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     prog_bar.step(-1.0)
@@ -328,6 +329,7 @@ def Acquire_ASPM(duration_acq):
     start_time_shown.set(f"Start time:   {start_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     stop_time_shown.set(f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     acq_time = datetime.now()
+    stop_button.configure(state="normal")
 
     while acq_time < stop_acq_time and not stop_run_var:
         acq_time = datetime.now()
@@ -369,7 +371,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
         return
     if not Apri_Seriale(): return
     run_button.configure(state="disabled")
-    stop_button.configure(state="normal")
+    # stop_button.configure(state="normal")
     paths_button.configure(state="disabled")
     acq_time_hours.configure(state="disabled")
     acq_time_minutes.configure(state="disabled")
