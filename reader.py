@@ -261,8 +261,7 @@ def Apri_Seriale():
         ser.open()
         time.sleep(delay_var.get() * 1)
     else:
-        #root.bell()
-        # custom_sound("sas.wav")
+        root.bell()   
         out_ins("ArduSiPM not found please connect")
         return False
     return ser
@@ -364,8 +363,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     global debug, stop_run_var
     unpack()
     if duration_acq == 0:
-        # root.bell()
-        # custom_sound("sas.wav")
+        root.bell()
         out_ins("Invalid time inserted: 00:00:00")
         return
     if not Apri_Seriale(): return
@@ -404,8 +402,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     ser.close()
     prog_bar.stop()
     out_ins('Acquisition ended\n')
-    # root.bell()
-    # custom_sound("sas.wav")
+    root.bell()
     run_button.configure(state="normal")
     stop_button.configure(state="disabled")
     paths_button.configure(state="normal")
