@@ -95,11 +95,14 @@ def launch_run() -> None:
             can_run = False
 
 def allow_run() -> None:
-    '''Checks whether the Run Thread is alive and if not starts it'''
-    global can_run
+    '''Checks whether the Run and the Progbar Thread are alive and if not starts them'''
+    global can_run, progbar_can_go
     if not run_thread.is_alive():
         run_thread.start()
     can_run = True
+    if not progbar_thread.is_alive() and sum_times() != 0:
+        progbar_thread.start()
+    # progbar_can_go = True
 
 # def terminate_process() -> None:
 #     '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
@@ -154,22 +157,29 @@ def unpack() -> None:
 #         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
 
 def progressbar_step() -> None:
-    step_time = 0.05
-    n_step = acq_time_tot/step_time
-    step = prog_bar["maximum"]/n_step
-    
-    # if progress.get() <= prog_bar["maximum"]:
-    #     prog_bar.step(step)
-    #     root.after(step_time, progressbar_step())
-
-    for i in range(int(n_step)):
-        prog_bar.step(step)
-        time.sleep(step_time)
+    '''Manages the progressbar'''
+    global progbar_can_go, prog_bar_position
+    while not stop_threads:
+        step_time = 0.05
+        n_step = sum_times()/step_time
+        step = prog_bar["maximum"]/n_step
+        if progbar_can_go:
+            for _ in range(int(n_step)):
+                prog_bar.step(step)
+                prog_bar_position += step
+                time.sleep(step_time)
+                if not progbar_can_go:
+                    prog_bar.step(-prog_bar_position)
+                    prog_bar_position = 0
+                    break
+            prog_bar.step(-prog_bar_position)
+            progbar_can_go = False
 
 def stop_run() -> None:
-    '''Stops the current run and saves data'''
-    global stop_run_var
+    '''Stops the current run, the progressbar and saves data'''
+    global stop_run_var, progbar_can_go
     stop_run_var = True
+    progbar_can_go = False
 
 # -------------------------------------------------------------
 # reader functions
@@ -312,14 +322,16 @@ def Acquire_ASPM(duration_acq):
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
-    global debug, prog_bar, start_acq_time, start_time_shown, stop_time_shown, stop_button
+    global debug, prog_bar, start_acq_time, start_time_shown
+    global stop_time_shown, stop_button, prog_bar_position, progbar_can_go
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     prog_bar.step(-1.0)
+    progbar_can_go = True
     # prog_bar_progress = 0
     # nloops = acq_time_tot/0.2   #numero cicli = tempo tot / tempo per un giro
     # step = prog_bar["maximum"]/nloops   #incremento di ogni giro = massimo della barra / numero di giri
-    prog_bar.after(0, progressbar_step())
+    # prog_bar.after(0, progressbar_step())
     lista = []
     info_format()
     start_acq_time = datetime.now()
@@ -350,6 +362,7 @@ def Acquire_ASPM(duration_acq):
     #     else:
     #         prog_bar.step(prog_bar["maximum"]-(prog_bar_progress-(step-0.01)))
     # prog_bar["maximum"] = 100
+    # progbar_can_go = False
     return lista
 
 
@@ -440,8 +453,10 @@ debug = False
 check_time = 100
 stop_threads = False
 can_run = True
+progbar_can_go = False
+prog_bar_position = 0
 stop_run_var = False
-acq_time_tot = 0
+acq_time_tot = 1
 
 y_time = 500
 x_time = 100
@@ -541,6 +556,7 @@ acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=to
 footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
+progbar_thread = threading.Thread(target=progressbar_step, name="Progress bar", daemon=True)
 
 # run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
 
