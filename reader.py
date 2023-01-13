@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import multiprocessing
 import subprocess
-import winsound
 import os
 import sys
 import threading
@@ -146,13 +144,14 @@ def unpack() -> None:
     time_pass_label.pack_forget()
     time_left_label.pack_forget()
 
-def custom_sound(file_name) -> None:
-    # executes the audio file inserted
-    global current_dir
-    if sys.platform == "win32":
-        winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
-    elif sys.platform == "darwin":
-        subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
+# def custom_sound(file_name) -> None:
+#     # executes the audio file inserted
+#     global current_dir
+#     if sys.platform == "win32":
+#         import winsound
+#         winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
+#     elif sys.platform == "darwin":
+#         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
 
 def progressbar_step() -> None:
     step_time = 0.05
@@ -263,7 +262,7 @@ def Apri_Seriale():
         time.sleep(delay_var.get() * 1)
     else:
         #root.bell()
-        custom_sound("sas.wav")
+        # custom_sound("sas.wav")
         out_ins("ArduSiPM not found please connect")
         return False
     return ser
@@ -366,7 +365,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     unpack()
     if duration_acq == 0:
         # root.bell()
-        custom_sound("sas.wav")
+        # custom_sound("sas.wav")
         out_ins("Invalid time inserted: 00:00:00")
         return
     if not Apri_Seriale(): return
@@ -406,7 +405,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     prog_bar.stop()
     out_ins('Acquisition ended\n')
     # root.bell()
-    custom_sound("sas.wav")
+    # custom_sound("sas.wav")
     run_button.configure(state="normal")
     stop_button.configure(state="disabled")
     paths_button.configure(state="normal")
