@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import subprocess
 import os
 import sys
 import threading
@@ -66,26 +65,6 @@ def choose_path() -> None:
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
 
-def replace(widget, corner=False) -> None:
-    '''Replaces the widget passed to fit in the screen'''
-    global root_x, root_y
-    w_x, w_y = widget.winfo_x(), widget.winfo_y()
-    new_x, new_y = root.winfo_width(), root.winfo_height()
-    x_ratio, y_ratio = new_x/root_x, new_y/root_y
-    if w_x == 0 and w_y == 0 and not corner:
-        return
-    widget.place(x=w_x*x_ratio, y=w_y*y_ratio)
-
-def check_config() -> None:
-    '''Recursive function that calls itself to check and replace the widgets 
-    in the replaceable list'''
-    global check_time, root_x, root_y
-    if not (root_x == root.winfo_width() and root_y == root.winfo_height()):
-        for w in replaceable:
-            replace(w)
-        root_x, root_y = root.winfo_width(), root.winfo_height()
-    root.after(check_time, check_config)
-
 def launch_run() -> None:
     '''Checks if the Run Thread can run and calls RunIt '''
     global can_run
@@ -103,11 +82,6 @@ def allow_run() -> None:
     if not progbar_thread.is_alive() and sum_times() != 0:
         progbar_thread.start()
     # progbar_can_go = True
-
-# def terminate_process() -> None:
-#     '''Terminates the run process forcibly !!!WITHOUT SAVING!!!'''
-#     global run_process
-#     run_process.terminate()
 
 def info_format() -> None:
     '''Makes the info about the time appear at the right of the screen'''
@@ -132,9 +106,8 @@ def info_format() -> None:
     result=result[:(len(result)-1)]
     run_durat.set(f"Run time:   {result}")
 
-def unpack() -> None:
-    ''''''
-    # clear before new session
+def clear_screen() -> None:
+    '''Clears the screen before new session''' 
     output.config(state="normal")
     output.delete('1.0', END)
     output.insert(END, initial_text)
@@ -146,15 +119,6 @@ def unpack() -> None:
     stop_time_label.pack_forget()
     time_pass_label.pack_forget()
     time_left_label.pack_forget()
-
-# def custom_sound(file_name) -> None:
-#     # executes the audio file inserted
-#     global current_dir
-#     if sys.platform == "win32":
-#         import winsound
-#         winsound.PlaySound(os.path.join(current_dir, "utilities", file_name), winsound.SND_FILENAME)
-#     elif sys.platform == "darwin":
-#         subprocess.call("afplay", os.path.join(current_dir, "utilities", file_name))
 
 def progressbar_step() -> None:
     '''Manages the progressbar'''
@@ -169,6 +133,7 @@ def progressbar_step() -> None:
                 prog_bar_position += step
                 time.sleep(step_time)
                 if not progbar_can_go:
+                    # prog_bar.step(100-progress.get())
                     prog_bar.step(-prog_bar_position)
                     prog_bar_position = 0
                     break
@@ -374,7 +339,7 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     OUTPUT:
     '''
     global debug, stop_run_var
-    unpack()
+    clear_screen()
     if duration_acq == 0:
         root.bell()
         out_ins("Invalid time inserted: 00:00:00")
@@ -568,8 +533,8 @@ prog_frame = Frame(root)
 progress = DoubleVar()
 prog_bar = ttk.Progressbar(prog_frame, maximum=100, length=500, variable=progress)
 prog_label = Label(prog_frame, textvariable=progress)
-prog_label.pack(side="right")
-# prog_label = Label(prog_frame, textvariable=prog)
+
+prog_label.pack(side="right", padx=10)
 prog_frame.pack()
 prog_bar.pack()
 # prog_label.pack()
@@ -607,8 +572,6 @@ delay_checkb.pack(side="left", padx=5)
 path_label.pack(side='bottom', anchor="se", padx=10)
 
 # --------------------------------------------------------------
-replaceable = []
-
 root.mainloop()
 
 stop_threads = True
