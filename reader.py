@@ -415,7 +415,6 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 
 
 debug = False
-check_time = 100
 stop_threads = False
 can_run = True
 progbar_can_go = False
@@ -451,7 +450,6 @@ try: root.iconbitmap(icon_path, )
 except TclError: pass
 root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
-#root.after(check_time, check_config)
 
 # -------------------------------------------------------------
 # shown text
@@ -545,8 +543,6 @@ prog_bar.pack()
 output.pack(side="left", expand=True, fill="x")
 
 info_frame.pack(side="top", fill="x")
-
- 
 
 main_frame.pack(pady=15)
 
