@@ -125,7 +125,7 @@ def progressbar_step() -> None:
     global progbar_can_go, prog_bar_position
     while not stop_threads:
         step_time = 0.05
-        n_step = sum_times()/step_time
+        n_step = sum_times()/step_time if sum_times() != 0 else 1
         step = prog_bar["maximum"]/n_step
         if progbar_can_go:
             for _ in range(int(n_step)):
