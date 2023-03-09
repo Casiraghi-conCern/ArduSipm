@@ -5,8 +5,7 @@ import sys
 import threading
 import time
 from datetime import datetime, timedelta
-from tkinter import *
-from tkinter import filedialog, scrolledtext, ttk
+import tkinter as tk
 
 import serial
 import serial.tools.list_ports
@@ -22,28 +21,31 @@ initial_text = '''
 # -------------------------------------------------------------
 # GUI functions
 
+
 def out_ins(text, end='\n\n') -> None:
     '''Prints the argument in the Output Scrolled Text '''
     output.config(state="normal")
     output.insert("end", f"   {text}{end}")
-    output.see(END)
+    output.see("end")
     output.config(state="disabled")
+
 
 def validate_digit(value, type) -> bool:
     '''Validates every character the user puts in hours, mins and secs
     returns True if the value is accepted'''
-    if value.isdigit(): 
+    if value.isdigit():
         value = int(value)
-    elif value=='':
+    elif value == '':
         return True
-    else: 
+    else:
         return False
 
-    if 0<=value<1000 and len(str(value)) <= 3 and type=="hours":
+    if 0 <= value < 1000 and len(str(value)) <= 3 and type == "hours":
         return True
-    elif 0<=value<60 and len(str(value)) <= 2 and (type=="mins" or type=="secs"):
+    elif 0 <= value < 60 and len(str(value)) <= 2 and (type == "mins" or type == "secs"):
         return True
     return False
+
 
 def sum_times() -> int:
     '''Calculates the sum of hours, mins and secs
@@ -57,13 +59,15 @@ def sum_times() -> int:
     acq_time_tot = tot
     return tot
 
+
 def choose_path() -> None:
     '''Asks the user for a directory where to store csv files'''
     global save_path, shown_path
-    path = filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
+    path = tk.filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
     if path != '':
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
+
 
 def launch_run() -> None:
     '''Checks if the Run Thread can run and calls RunIt '''
@@ -72,6 +76,7 @@ def launch_run() -> None:
         if can_run:
             RunIt(sum_times())
             can_run = False
+
 
 def allow_run() -> None:
     '''Checks whether the Run and the Progbar Thread are alive and if not starts them'''
@@ -82,6 +87,7 @@ def allow_run() -> None:
     if not progbar_thread.is_alive() and sum_times() != 0:
         progbar_thread.start()
     # progbar_can_go = True
+
 
 def info_format() -> None:
     '''Makes the info about the time appear at the right of the screen'''
@@ -102,23 +108,25 @@ def info_format() -> None:
             item = "0"+s_var.get()
         else:
             item = s_var.get()
-        result+=item+":"
-    result=result[:(len(result)-1)]
+        result += item+":"
+    result = result[:(len(result)-1)]
     run_durat.set(f"Run time:   {result}")
 
+
 def clear_screen() -> None:
-    '''Clears the screen before new session''' 
+    '''Clears the screen before new session'''
     output.config(state="normal")
-    output.delete('1.0', END)
-    output.insert(END, initial_text)
-    output.see(END)
+    output.delete('1.0', "end")
+    output.insert("end", initial_text)
+    output.see("end")
     output.config(state="disabled")
-    
+
     run_durat_label.pack_forget()
     start_time_label.pack_forget()
     stop_time_label.pack_forget()
     time_pass_label.pack_forget()
     time_left_label.pack_forget()
+
 
 def progressbar_step() -> None:
     '''Manages the progressbar'''
@@ -139,6 +147,7 @@ def progressbar_step() -> None:
                     break
             prog_bar.step(-prog_bar_position)
             progbar_can_go = False
+
 
 def stop_run() -> None:
     '''Stops the current run, the progressbar and saves data'''
@@ -210,7 +219,7 @@ def Search_ASPM():
     global debug
     # Scan Serial ports and found ArduSiPM
     if debug:
-        out_ins("Serial ports available:")  
+        out_ins("Serial ports available:")
     ports = list(serial.tools.list_ports.comports())
     for i in range(len(ports)):
         if debug:
@@ -236,7 +245,7 @@ def Apri_Seriale():
         ser.open()
         time.sleep(delay_var.get() * 1)
     else:
-        root.bell()   
+        root.bell()
         out_ins("ArduSiPM not found please connect")
         return False
     return ser
@@ -300,16 +309,20 @@ def Acquire_ASPM(duration_acq):
     lista = []
     info_format()
     start_acq_time = datetime.now()
-    stop_acq_time = start_acq_time + timedelta(seconds=duration_acq)   # -1??????
-    start_time_shown.set(f"Start time:   {start_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
-    stop_time_shown.set(f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
+    stop_acq_time = start_acq_time + \
+        timedelta(seconds=duration_acq)   # -1??????
+    start_time_shown.set(
+        f"Start time:   {start_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
+    stop_time_shown.set(
+        f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     acq_time = datetime.now()
     stop_button.configure(state="normal")
 
     while acq_time < stop_acq_time and not stop_run_var:
         acq_time = datetime.now()
         time_pass_local = (str(acq_time-start_acq_time)).split(".")[0]
-        time_left_local = (str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
+        time_left_local = (
+            str(stop_acq_time-acq_time+timedelta(seconds=1))).split(".")[0]
         time_pass.set(f"Time passed:   {time_pass_local}")
         time_left.set(f"Time left:   - {time_left_local}")
         # print(acq_time.strftime('%H:%M:%S'))
@@ -320,7 +333,7 @@ def Acquire_ASPM(duration_acq):
             out_ins(tdata)
         lista.append(tdata)
         time.sleep(0.2)
-        # prog_bar.step(step)    
+        # prog_bar.step(step)
     #     prog_bar_progress += step
     #     if prog_bar_progress <= prog_bar["maximum"]:
     #         prog_bar.step(step)
@@ -344,7 +357,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
         root.bell()
         out_ins("Invalid time inserted: 00:00:00")
         return
-    if not Apri_Seriale(): return
+    if not Apri_Seriale():
+        return
     run_button.configure(state="disabled")
     # stop_button.configure(state="normal")
     paths_button.configure(state="disabled")
@@ -376,7 +390,8 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     data = Acquire_ASPM(duration_acq)
     out_ins('SAVING DATA...')
     stop_run_var = False
-    Save_Data(data, f"{start_acq_time.strftime(r'%y%m%d%H%M%S')}_{file_par}.csv")
+    Save_Data(
+        data, f"{start_acq_time.strftime(r'%y%m%d%H%M%S')}_{file_par}.csv")
     ser.close()
     prog_bar.stop()
     out_ins('Acquisition ended\n')
@@ -413,7 +428,6 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 # useful variables
 
 
-
 debug = False
 stop_threads = False
 can_run = True
@@ -437,7 +451,7 @@ if not os.path.exists(csv_files):
 
 # -------------------------------------------------------------
 # main window
-root = Tk()
+root = tk.Tk()
 
 screen_x, screen_y = root.winfo_screenwidth(), root.winfo_screenheight()
 root_x, root_y = int(screen_x*5/6), int(screen_y*5/6)
@@ -446,25 +460,27 @@ min_y = int(min_x*root_y/root_x)
 
 root.title("ArduSipm - Reader")
 root.geometry(f"{root_x}x{root_y}-100-70")
-try: root.iconbitmap(icon_path, )
-except TclError: pass
+try:
+    root.iconbitmap(icon_path, )
+except tk.TclError:
+    pass
 root.resizable(True, True)
 root.minsize(width=min_x, height=min_y)
 
 # -------------------------------------------------------------
 # shown text
-info_frame = Frame(root)
+info_frame = tk.Frame(root)
 
-output = scrolledtext.ScrolledText(info_frame, height=25, highlightthickness=0)
+output = tk.scrolledtext.ScrolledText(info_frame, height=25, highlightthickness=0)
 out_ins(initial_text)
 
 # -------------------------------------------------------------
 # top menu
 
-menubar_1 = Menu(root)
+menubar_1 = tk.Menu(root)
 root.config(menu=menubar_1)
 
-file_menu = Menu(menubar_1, tearoff=0)
+file_menu = tk.Menu(menubar_1, tearoff=0)
 menubar_1.add_cascade(label="File", menu=file_menu)
 file_menu.add_cascade(label="Info ArduSipm", command=Info_ASPM)
 file_menu.add_separator()
@@ -473,64 +489,73 @@ file_menu.add_command(label="Exit", command=root.quit)
 # -------------------------------------------------------------
 # canvas for acquisition
 
-save_path = StringVar()
+save_path = tk.StringVar()
 save_path.set(csv_files)
-shown_path = StringVar()
+shown_path = tk.StringVar()
 shown_path.set("Destination of the CSV files:           " + csv_files)
 
-main_frame = Frame(root)
-footer_frame = Frame(root)
+main_frame = tk.Frame(root)
+footer_frame = tk.Frame(root)
 
 # paths_cbox = ttk.Combobox(root, values=[csv_files],
 #   width=56, state="readonly", textvariable=save_path, justify="right")
-paths_button = Button(main_frame, text="select path", command=choose_path,
+paths_button = tk.Button(main_frame, text="select path", command=choose_path,
                       bg=f"{buttons_color}")
-path_label = Label(footer_frame, textvariable=shown_path)
+path_label = tk.Label(footer_frame, textvariable=shown_path)
 
 
-h_label = Label(main_frame, text="hours")
-m_label = Label(main_frame, text="mins")
-s_label = Label(main_frame, text="secs")
+h_label = tk.Label(main_frame, text="hours")
+m_label = tk.Label(main_frame, text="mins")
+s_label = tk.Label(main_frame, text="secs")
 
-tot_hours = StringVar()
-tot_mins = StringVar()
-tot_secs = StringVar()
+tot_hours = tk.StringVar()
+tot_mins = tk.StringVar()
+tot_secs = tk.StringVar()
 
-run_durat = StringVar()
-start_time_shown = StringVar()
-stop_time_shown = StringVar()
-time_pass = StringVar()
-time_left = StringVar()
+run_durat = tk.StringVar()
+start_time_shown = tk.StringVar()
+stop_time_shown = tk.StringVar()
+time_pass = tk.StringVar()
+time_left = tk.StringVar()
 
 font_size = 18
-run_durat_label = Label(info_frame, textvariable=run_durat, font=("", font_size))
-start_time_label = Label(info_frame, textvariable=start_time_shown, font=("", font_size))
-stop_time_label = Label(info_frame, textvariable=stop_time_shown, font=("", font_size))
-time_pass_label = Label(info_frame, textvariable=time_pass, font=("", font_size))
-time_left_label = Label(info_frame, textvariable=time_left, font=("", font_size))
+run_durat_label = tk.Label(
+    info_frame, textvariable=run_durat, font=("", font_size))
+start_time_label = tk.Label(
+    info_frame, textvariable=start_time_shown, font=("", font_size))
+stop_time_label = tk.Label(
+    info_frame, textvariable=stop_time_shown, font=("", font_size))
+time_pass_label = tk.Label(
+    info_frame, textvariable=time_pass, font=("", font_size))
+time_left_label = tk.Label(
+    info_frame, textvariable=time_left, font=("", font_size))
 
-acq_time_hours = Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
+acq_time_hours = tk.Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_digit), "%P", "hours"))
-acq_time_minutes = Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
+acq_time_minutes = tk.Spinbox(main_frame, justify="right", width=3, textvariable=tot_mins,
                            from_=0, to=59, validate="all", validatecommand=(root.register(validate_digit), "%P", "mins"))
-acq_time_seconds = Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
+acq_time_seconds = tk.Spinbox(main_frame, justify="right", width=3, textvariable=tot_secs,
                            from_=0, to=59, validate="all", validatecommand=(root.register(validate_digit), "%P", "secs"))
 
 footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
-progbar_thread = threading.Thread(target=progressbar_step, name="Progress bar", daemon=True)
+progbar_thread = threading.Thread(
+    target=progressbar_step, name="Progress bar", daemon=True)
 
 # run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
 
-run_button = Button(main_frame, text="Run", bg=buttons_color, command=allow_run)
+run_button = tk.Button(main_frame, text="Run",
+                    bg=buttons_color, command=allow_run)
 
-stop_button = Button(main_frame, text="Stop", bg=buttons_color, command=stop_run, state="disabled")
+stop_button = tk.Button(main_frame, text="Stop", bg=buttons_color,
+                     command=stop_run, state="disabled")
 
-prog_frame = Frame(root)
-progress = DoubleVar()
-prog_bar = ttk.Progressbar(prog_frame, maximum=100, length=500, variable=progress)
-prog_label = Label(prog_frame, textvariable=progress)
+prog_frame = tk.Frame(root)
+progress = tk.DoubleVar()
+prog_bar = tk.ttk.Progressbar(prog_frame, maximum=100,
+                           length=500, variable=progress)
+prog_label = tk.Label(prog_frame, textvariable=progress)
 
 prog_label.pack(side="right", padx=10)
 prog_frame.pack()
@@ -561,8 +586,9 @@ stop_button.pack(side="left", padx=5)
 
 paths_button.pack(side="left", padx=5)
 
-delay_var = IntVar(value=0)
-delay_checkb = Checkbutton(main_frame, variable=delay_var, offvalue=1, onvalue=0, text="remove delay")
+delay_var = tk.IntVar(value=0)
+delay_checkb = tk.Checkbutton(
+    main_frame, variable=delay_var, offvalue=1, onvalue=0, text="remove delay")
 delay_checkb.pack(side="left", padx=5)
 
 path_label.pack(side='bottom', anchor="se", padx=10)
