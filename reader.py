@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 import tkinter as tk
+from tkinter import scrolledtext, ttk, filedialog
 
 import serial
 import serial.tools.list_ports
@@ -557,7 +558,7 @@ prog_bar = tk.ttk.Progressbar(prog_frame, maximum=100,
                            length=500, variable=progress)
 prog_label = tk.Label(prog_frame, textvariable=progress)
 
-prog_label.pack(side="right", padx=10)
+# prog_label.pack(side="right", padx=10)
 prog_frame.pack()
 prog_bar.pack()
 # prog_label.pack()
@@ -589,7 +590,7 @@ paths_button.pack(side="left", padx=5)
 delay_var = tk.IntVar(value=0)
 delay_checkb = tk.Checkbutton(
     main_frame, variable=delay_var, offvalue=1, onvalue=0, text="remove delay")
-delay_checkb.pack(side="left", padx=5)
+# delay_checkb.pack(side="left", padx=5)
 
 path_label.pack(side='bottom', anchor="se", padx=10)
 
