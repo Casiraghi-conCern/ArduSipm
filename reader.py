@@ -64,7 +64,7 @@ def sum_times() -> int:
 def choose_path() -> None:
     '''Asks the user for a directory where to store csv files'''
     global save_path, shown_path
-    path = tk.filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
+    path = filedialog.askdirectory(initialdir=save_path.get(), mustexist=True)
     if path != '':
         save_path.set(path)
         shown_path.set("Destination of the CSV files:           " + path)
@@ -472,7 +472,7 @@ root.minsize(width=min_x, height=min_y)
 # shown text
 info_frame = tk.Frame(root)
 
-output = tk.scrolledtext.ScrolledText(info_frame, height=25, highlightthickness=0)
+output = scrolledtext.ScrolledText(info_frame, height=25, highlightthickness=0)
 out_ins(initial_text)
 
 # -------------------------------------------------------------
@@ -554,7 +554,7 @@ stop_button = tk.Button(main_frame, text="Stop", bg=buttons_color,
 
 prog_frame = tk.Frame(root)
 progress = tk.DoubleVar()
-prog_bar = tk.ttk.Progressbar(prog_frame, maximum=100,
+prog_bar = ttk.Progressbar(prog_frame, maximum=100,
                            length=500, variable=progress)
 prog_label = tk.Label(prog_frame, textvariable=progress)
 
