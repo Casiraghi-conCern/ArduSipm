@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import threading
 import time
-from datetime import datetime, timedelta
 import tkinter as tk
-from tkinter import scrolledtext, ttk, filedialog
+from tkinter import filedialog, scrolledtext, ttk
+from datetime import datetime, timedelta
 
 import serial
 import serial.tools.list_ports
@@ -18,6 +17,8 @@ initial_text = '''
     ===========================
 
 '''
+
+delay_var = 1
 
 # -------------------------------------------------------------
 # GUI functions
@@ -81,13 +82,10 @@ def launch_run() -> None:
 
 def allow_run() -> None:
     '''Checks whether the Run and the Progbar Thread are alive and if not starts them'''
-    global can_run, progbar_can_go
+    global can_run
     if not run_thread.is_alive():
         run_thread.start()
     can_run = True
-    if not progbar_thread.is_alive() and sum_times() != 0:
-        progbar_thread.start()
-    # progbar_can_go = True
 
 
 def info_format() -> None:
@@ -102,6 +100,7 @@ def info_format() -> None:
     stop_time_label.pack(anchor="w", padx=20, pady=pady)
     time_pass_label.pack(anchor="w", padx=20, pady=pady)
     time_left_label.pack(anchor="w", padx=20, pady=pady)
+    prog_label.pack(anchor="w", padx=20, pady=pady)
     for item, s_var in zip([s_hours, s_mins, s_secs], [tot_hours, tot_mins, tot_secs]):
         if len(s_var.get()) == 0:
             item = "00"
@@ -127,27 +126,7 @@ def clear_screen() -> None:
     stop_time_label.pack_forget()
     time_pass_label.pack_forget()
     time_left_label.pack_forget()
-
-
-def progressbar_step() -> None:
-    '''Manages the progressbar'''
-    global progbar_can_go, prog_bar_position
-    while not stop_threads:
-        step_time = 0.05
-        n_step = sum_times()/step_time if sum_times() != 0 else 1
-        step = prog_bar["maximum"]/n_step
-        if progbar_can_go:
-            for _ in range(int(n_step)):
-                prog_bar.step(step)
-                prog_bar_position += step
-                time.sleep(step_time)
-                if not progbar_can_go:
-                    # prog_bar.step(100-progress.get())
-                    prog_bar.step(-prog_bar_position)
-                    prog_bar_position = 0
-                    break
-            prog_bar.step(-prog_bar_position)
-            progbar_can_go = False
+    prog_label.pack_forget()
 
 
 def stop_run() -> None:
@@ -160,7 +139,7 @@ def stop_run() -> None:
 # reader functions
 
 
-def Info_ASPM():
+def Info_ASPM() -> bool | None:
     '''
     SCOPE: call to the original info script from V.Bocci
     INPUT: none
@@ -171,7 +150,7 @@ def Info_ASPM():
 
     ser.reset_input_buffer()  # Flush all the previous data in Serial port
     start = time.time()
-    time.sleep(delay_var.get() * 3)
+    time.sleep(delay_var * 3)
     ser.write('F\n\r'.encode())
 
     norisposta = True
@@ -210,7 +189,7 @@ def Info_ASPM():
     return True
 
 
-def Search_ASPM():
+def Search_ASPM() -> str:
     '''
     SCOPE: search for ArduSiPM
     NOTE: copied and adapted from the original script from V.Bocci
@@ -235,7 +214,7 @@ def Search_ASPM():
             out_ins("no ArduSiPM, looking more...")
 
 
-def Apri_Seriale():
+def Apri_Seriale() -> serial.Serial | bool:
     global ser
     ser = serial.Serial()
     ser.baudrate = 115200
@@ -244,7 +223,7 @@ def Apri_Seriale():
     if ser_num:
         ser.port = ser_num
         ser.open()
-        time.sleep(delay_var.get() * 1)
+        time.sleep(delay_var * 1)
     else:
         root.bell()
         out_ins("ArduSiPM not found please connect")
@@ -252,32 +231,32 @@ def Apri_Seriale():
     return ser
 
 
-def Scrivi_Seriale(comando):
+def Scrivi_Seriale(comando) -> None:
     if ser:
         ser.write(str('m').encode('utf-8'))
-        time.sleep(delay_var.get() * 2)
+        time.sleep(delay_var * 2)
         ser.write(str(comando).encode('utf-8'))
-        time.sleep(delay_var.get() * 2)
+        time.sleep(delay_var * 2)
         ser.write(str('e').encode('utf-8'))
         out_ins(f'wrote on serial {comando}')
-        time.sleep(delay_var.get() * 0.5)
+        time.sleep(delay_var * 0.5)
 
 
-def SetThreshold(threshold):
+def SetThreshold(threshold) -> None:
     if ser:
         ser.write(str('m').encode('utf-8'))
-        time.sleep(delay_var.get() * 2)
+        time.sleep(delay_var * 2)
         ser.write(str('t').encode('utf-8'))
-        time.sleep(delay_var.get() * 2)
+        time.sleep(delay_var * 2)
         # ser.write(threshold.to_bytes(4, 'little'))
         # ser.write(b'10')
         ser.write(str(threshold).encode('utf-8'))
-        time.sleep(delay_var.get() * 4)
+        time.sleep(delay_var * 4)
         ser.write(str('e').encode('utf-8'))
-        time.sleep(delay_var.get() * 2)
+        time.sleep(delay_var * 2)
 
 
-def Save_Data(data, file_name='my_data.csv'):
+def Save_Data(data, file_name='my_data.csv') -> None:
     '''
     SCOPE:
     INPUT: file name and data in binary format
@@ -291,18 +270,17 @@ def Save_Data(data, file_name='my_data.csv'):
             file.write(',')
 
 
-def Acquire_ASPM(duration_acq):
+def Acquire_ASPM(duration_acq) -> list:
     '''
     SCOPE:
     INPUT: duration in seconds
     OUTPUT: a DataFraMe with the data
     '''
     global debug, prog_bar, start_acq_time, start_time_shown
-    global stop_time_shown, stop_button, prog_bar_position, progbar_can_go
+    global stop_time_shown, stop_button
     prog_bar.stop()
     prog_bar.configure(mode="determinate")
     prog_bar.step(-1.0)
-    progbar_can_go = True
     # prog_bar_progress = 0
     # nloops = acq_time_tot/0.2   #numero cicli = tempo tot / tempo per un giro
     # step = prog_bar["maximum"]/nloops   #incremento di ogni giro = massimo della barra / numero di giri
@@ -316,9 +294,11 @@ def Acquire_ASPM(duration_acq):
         f"Start time:   {start_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
     stop_time_shown.set(
         f"Stop time:   {stop_acq_time.strftime(r'%y-%m-%d  %H:%M:%S')}")
+    prog_bar["maximum"] = 20 * duration_acq
+    prog_bar["value"] = 0
     acq_time = datetime.now()
     stop_button.configure(state="normal")
-
+    prog_bar.start()
     while acq_time < stop_acq_time and not stop_run_var:
         acq_time = datetime.now()
         time_pass_local = (str(acq_time-start_acq_time)).split(".")[0]
@@ -333,19 +313,14 @@ def Acquire_ASPM(duration_acq):
         if debug:
             out_ins(tdata)
         lista.append(tdata)
+        if prog_bar["value"] >= prog_bar["maximum"]:
+            prog_bar.stop()
         time.sleep(0.2)
-        # prog_bar.step(step)
-    #     prog_bar_progress += step
-    #     if prog_bar_progress <= prog_bar["maximum"]:
-    #         prog_bar.step(step)
-    #     else:
-    #         prog_bar.step(prog_bar["maximum"]-(prog_bar_progress-(step-0.01)))
-    # prog_bar["maximum"] = 100
-    # progbar_can_go = False
+    prog_bar.stop()
     return lista
 
 
-def RunIt(duration_acq=0, file_par='RawData', threshold=200):
+def RunIt(duration_acq=0, file_par='RawData', threshold=200) -> list | None:
     '''
     SCOPE:
     NOTE: copied and adapted from the original script from V.Bocci
@@ -374,17 +349,17 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     # ser.write(b'h75') # set HV
     # Scrivi_Seriale(b's3')
     # Scrivi_Seriale(b'@')
-    # time.sleep(delay_var.get() * 0.5)
+    # time.sleep(delay_var * 0.5)
     # ser.write(b'@')
-    # time.sleep(delay_var.get() * 0.5)
+    # time.sleep(delay_var * 0.5)
     ser.write(b'#')
-    time.sleep(delay_var.get() * 0.5)
+    time.sleep(delay_var * 0.5)
     SetThreshold(threshold)
     ser.write(b'$')
-    time.sleep(delay_var.get() * 4)
+    time.sleep(delay_var * 4)
     # ser.write(b'#') ## ADC+CPS
     ser.write(b'@')  # TDC+ADC+CPS
-    time.sleep(delay_var.get() * 0.5)
+    time.sleep(delay_var * 0.5)
     out_ins(f'Acquiring now...')
     # out_ins(
     #     f'starting time: {start_acq_time} \n    Acquiring now... this run will stop at {stopat}')
@@ -406,24 +381,23 @@ def RunIt(duration_acq=0, file_par='RawData', threshold=200):
     return data
 
 
-def RunLoop(duration_acq, nLoops, file_par, threshold=200):
+def RunLoop(duration_acq, nLoops, file_par, threshold=200) -> None:
     out_ins(f'Start running {nLoops} loops of {duration_acq} sec each\n')
     for i in range(nLoops+1):
         out_ins(f'Run now loop n. {i} of {nLoops}')
         RunIt(duration_acq=duration_acq, file_par=file_par, threshold=threshold)
 
 
-def ScanThreshold(duration_acq=3600, prefix=None):
+def ScanThreshold(duration_acq=3600, prefix=None) -> None:
     global debug
     step = 20
     for t in range(10, 255, step):
         out_ins(f'I will now run threshold {t} (range 10-255, steps {step})')
-        time.sleep(delay_var.get() * 10)
+        time.sleep(delay_var * 10)
         nomeFile = prefix + f'CTA-ThresholdScan_{t}'
         RunIt(duration_acq=duration_acq,
               file_par=nomeFile, threshold=t, debug=debug)
 
-# interactive()
 
 # -------------------------------------------------------------------------------------
 # useful variables
@@ -432,8 +406,6 @@ def ScanThreshold(duration_acq=3600, prefix=None):
 debug = False
 stop_threads = False
 can_run = True
-progbar_can_go = False
-prog_bar_position = 0
 stop_run_var = False
 acq_time_tot = 1
 
@@ -518,6 +490,11 @@ start_time_shown = tk.StringVar()
 stop_time_shown = tk.StringVar()
 time_pass = tk.StringVar()
 time_left = tk.StringVar()
+progress = tk.DoubleVar()
+
+prog_frame = tk.Frame(root)
+prog_bar = ttk.Progressbar(info_frame, maximum=100,
+                           length=500)
 
 font_size = 18
 run_durat_label = tk.Label(
@@ -530,6 +507,8 @@ time_pass_label = tk.Label(
     info_frame, textvariable=time_pass, font=("", font_size))
 time_left_label = tk.Label(
     info_frame, textvariable=time_left, font=("", font_size))
+prog_label = tk.Label(
+    info_frame, text=f"Current Progress: {prog_bar['value']}%", font=("", font_size))
 
 acq_time_hours = tk.Spinbox(main_frame, justify="right", width=3, textvariable=tot_hours,
                          from_=0, to=999, validate="all", validatecommand=(root.register(validate_digit), "%P", "hours"))
@@ -541,10 +520,6 @@ acq_time_seconds = tk.Spinbox(main_frame, justify="right", width=3, textvariable
 footer_frame.pack(side="bottom", fill="x")
 
 run_thread = threading.Thread(target=launch_run, name="Run", daemon=True)
-progbar_thread = threading.Thread(
-    target=progressbar_step, name="Progress bar", daemon=True)
-
-# run_process = multiprocessing.Process(target=launch_run, name="Run", daemon=True)
 
 run_button = tk.Button(main_frame, text="Run",
                     bg=buttons_color, command=allow_run)
@@ -552,11 +527,6 @@ run_button = tk.Button(main_frame, text="Run",
 stop_button = tk.Button(main_frame, text="Stop", bg=buttons_color,
                      command=stop_run, state="disabled")
 
-prog_frame = tk.Frame(root)
-progress = tk.DoubleVar()
-prog_bar = ttk.Progressbar(prog_frame, maximum=100,
-                           length=500, variable=progress)
-prog_label = tk.Label(prog_frame, textvariable=progress)
 
 # prog_label.pack(side="right", padx=10)
 prog_frame.pack()
@@ -578,19 +548,14 @@ h_label.pack(side="left")
 acq_time_minutes.pack(side="left")
 m_label.pack(side="left")
 
-acq_time_seconds.pack(side="left")
-s_label.pack(side="left")
+# acq_time_seconds.pack(side="left")
+# s_label.pack(side="left")
 
 run_button.pack(side="left", padx=5)
 
 stop_button.pack(side="left", padx=5)
 
 paths_button.pack(side="left", padx=5)
-
-delay_var = tk.IntVar(value=0)
-delay_checkb = tk.Checkbutton(
-    main_frame, variable=delay_var, offvalue=1, onvalue=0, text="remove delay")
-# delay_checkb.pack(side="left", padx=5)
 
 path_label.pack(side='bottom', anchor="se", padx=10)
 
